@@ -1,0 +1,23 @@
+{
+  "@@locale": "en",
+  "appTitle": "NeonTown",
+  "homeWelcome": "Where to go?",
+  "homeSubtitle": "Create your own village or visit others",
+  "createVillage": "Create Village",
+  "createVillageDesc": "Build your own village",
+  "exploreVillage": "Explore",
+  "exploreVillageDesc": "Visit other people's villages",
+  "myVillage": "My Village",
+  "myVillageDesc": "Go to your villages",
+  "settings": "Settings",
+  "myInfo": "My Info",
+  "logout": "Logout",
+  "logoutConfirm": "Are you sure you want to logout?",
+  "cancel": "Cancel",
+  "comingSoon": "Coming soon...",
+  "enterName": "Please enter your name",
+  "createCharacter": "Create Character",
+  "language": "Language",
+  "languageSystem": "System Default",
+  "languageSelect": "Select Language"
+}

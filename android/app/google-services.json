@@ -12,7 +12,20 @@
           "package_name": "com.neontown.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "471086979502-vdrnj5dkufkpf3ns603mifecmmpnj0d7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.neontown.app",
+            "certificate_hash": "5b772cd03a60b7d94f7791ed2222812384eae53e"
+          }
+        },
+        {
+          "client_id": "471086979502-96qdivr6mhcsfja1kc5sdllk4mgl4tnc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBtJx3QnoTOVfOZO6eIi8y7MDZoH5heD5I"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "471086979502-96qdivr6mhcsfja1kc5sdllk4mgl4tnc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "471086979502-v958vo2r95nmrv3hsr8t04jl609h992g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.neontown.app"
+              }
+            }
+          ]
         }
       }
     }

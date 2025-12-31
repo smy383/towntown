@@ -1,0 +1,23 @@
+{
+  "@@locale": "ja",
+  "appTitle": "ネオンタウン",
+  "homeWelcome": "どこへ行く?",
+  "homeSubtitle": "村を作ったり、他の村を訪れてみよう",
+  "createVillage": "村を作る",
+  "createVillageDesc": "自分だけの村を作ろう",
+  "exploreVillage": "村を探検",
+  "exploreVillageDesc": "他の人の村を見てみよう",
+  "myVillage": "マイビレッジ",
+  "myVillageDesc": "自分の村へ移動します",
+  "settings": "設定",
+  "myInfo": "マイ情報",
+  "logout": "ログアウト",
+  "logoutConfirm": "本当にログアウトしますか?",
+  "cancel": "キャンセル",
+  "comingSoon": "準備中...",
+  "enterName": "名前を入力してください",
+  "createCharacter": "キャラクター作成",
+  "language": "言語",
+  "languageSystem": "システム設定",
+  "languageSelect": "言語を選択"
+}

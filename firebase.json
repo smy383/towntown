@@ -1,1 +1,37 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"neontown","appId":"1:471086979502:android:67048b8ec462a470ead03f","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"neontown","appId":"1:471086979502:ios:dc7e47d39c0ea79fead03f","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"neontown","configurations":{"android":"1:471086979502:android:67048b8ec462a470ead03f","ios":"1:471086979502:ios:dc7e47d39c0ea79fead03f","web":"1:471086979502:web:3380fa0459505ccaead03f"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "functions": {
+    "source": "functions"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "neontown",
+          "appId": "1:471086979502:android:67048b8ec462a470ead03f",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "neontown",
+          "appId": "1:471086979502:ios:dc7e47d39c0ea79fead03f",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "neontown",
+          "configurations": {
+            "android": "1:471086979502:android:67048b8ec462a470ead03f",
+            "ios": "1:471086979502:ios:dc7e47d39c0ea79fead03f",
+            "web": "1:471086979502:web:3380fa0459505ccaead03f"
+          }
+        }
+      }
+    }
+  }
+}

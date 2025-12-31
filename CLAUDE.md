@@ -4,9 +4,65 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TownTown (타운타운) is a village-based SNS metaverse app built with Flutter. Users can create characters, explore villages, and interact in a 2D environment.
+NeonTown (네온타운) is a village-based SNS metaverse app built with Flutter. Users can create characters, explore villages, and interact in a 2D environment.
 
 **Target Platforms:** Android, iOS, Web
+
+## Design Style Guide
+
+**Theme: Cyberpunk / Neon Sign**
+
+전체적인 디자인은 **사이버펑크 스타일의 네온사인** 컨셉을 따릅니다.
+
+### Color Palette
+- **Primary**: Cyan (`Colors.cyanAccent`)
+- **Secondary**: Blue (`Colors.blueAccent`)
+- **Accent**: Magenta/Pink (`Colors.pinkAccent`)
+- **Background**: Black (`Colors.black`)
+- **Surface**: Dark Grey (`Colors.grey[900]`)
+
+### Neon Glow Effect
+텍스트나 UI 요소에 네온 글로우 효과 적용:
+```dart
+shadows: [
+  Shadow(color: Colors.cyanAccent.withOpacity(0.8), blurRadius: 10),
+  Shadow(color: Colors.cyanAccent.withOpacity(0.6), blurRadius: 20),
+  Shadow(color: Colors.cyanAccent.withOpacity(0.4), blurRadius: 30),
+  Shadow(color: Colors.blueAccent.withOpacity(0.3), blurRadius: 40),
+]
+```
+
+### Typography
+- 제목: 대문자, letterSpacing 추가, 네온 글로우
+- 본문: 밝은 회색 또는 흰색
+
+### UI Elements
+- 카드/버튼: 어두운 배경에 네온 테두리 또는 글로우
+- 아이콘: 네온 컬러 사용
+- 구분선: 네온 컬러로 글로우 효과
+
+## Localization (다국어 지원)
+
+**모든 텍스트는 반드시 3개 언어를 지원해야 합니다:**
+
+| 언어 | 코드 | ARB 파일 |
+|------|------|----------|
+| 한국어 | `ko` | `lib/l10n/app_ko.arb` |
+| 영어 | `en` | `lib/l10n/app_en.arb` |
+| 일본어 | `ja` | `lib/l10n/app_ja.arb` |
+
+### 새 텍스트 추가 방법
+1. 3개의 ARB 파일에 모두 키-값 추가
+2. `flutter gen-l10n` 실행
+3. 코드에서 `L10n.of(context)!.키이름` 으로 사용
+
+### 사용 예시
+```dart
+import '../l10n/app_localizations.dart';
+
+final l10n = L10n.of(context)!;
+Text(l10n.homeWelcome)  // "어디로 갈까요?" / "Where to go?" / "どこへ行く?"
+```
 
 ## Common Commands
 

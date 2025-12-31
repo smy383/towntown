@@ -1,0 +1,23 @@
+{
+  "@@locale": "ko",
+  "appTitle": "네온타운",
+  "homeWelcome": "어디로 갈까요?",
+  "homeSubtitle": "마을을 만들거나 다른 마을에 놀러가보세요",
+  "createVillage": "마을 만들기",
+  "createVillageDesc": "나만의 마을을 만들어보세요",
+  "exploreVillage": "마을 탐험",
+  "exploreVillageDesc": "다른 사람들의 마을을 구경해보세요",
+  "myVillage": "내 마을",
+  "myVillageDesc": "내가 만든 마을로 이동합니다",
+  "settings": "설정",
+  "myInfo": "내 정보",
+  "logout": "로그아웃",
+  "logoutConfirm": "정말 로그아웃 하시겠습니까?",
+  "cancel": "취소",
+  "comingSoon": "준비중...",
+  "enterName": "이름을 입력해주세요",
+  "createCharacter": "캐릭터 만들기",
+  "language": "언어",
+  "languageSystem": "시스템 설정",
+  "languageSelect": "언어 선택"
+}

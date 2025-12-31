@@ -4,10 +4,14 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 import 'dart:math';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
+import 'providers/locale_provider.dart';
 import 'screens/auth_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,12 +39,22 @@ class TownTownApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
       ],
-      child: MaterialApp(
-        title: 'TownTown',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData.dark(),
-        home: Consumer<AuthProvider>(
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, _) => MaterialApp(
+          title: 'NeonTown',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData.dark(),
+          locale: localeProvider.locale,
+          localizationsDelegates: const [
+            L10n.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: LocaleProvider.supportedLocales,
+          home: Consumer<AuthProvider>(
           builder: (context, auth, _) {
             // Show loading screen while checking auth state
             if (auth.status == AuthStatus.initial) {
@@ -57,9 +71,10 @@ class TownTownApp extends StatelessWidget {
               return const AuthScreen();
             }
 
-            // Show character creation if authenticated
-            return const CreateCharacterScreen();
+            // Show home screen if authenticated
+            return const HomeScreen();
           },
+        ),
         ),
       ),
     );
