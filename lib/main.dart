@@ -2,14 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'dart:math';
 import 'firebase_options.dart';
+import 'providers/auth_provider.dart';
+import 'screens/auth_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Kakao SDK
+  // TODO: Replace with your actual Kakao keys
+  KakaoSdk.init(
+    nativeAppKey: 'YOUR_KAKAO_NATIVE_APP_KEY',
+    javaScriptAppKey: 'YOUR_KAKAO_JAVASCRIPT_KEY',
+  );
+
   runApp(const TownTownApp());
 }
 
@@ -18,11 +32,36 @@ class TownTownApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TownTown',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: const CreateCharacterScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: MaterialApp(
+        title: 'TownTown',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData.dark(),
+        home: Consumer<AuthProvider>(
+          builder: (context, auth, _) {
+            // Show loading screen while checking auth state
+            if (auth.status == AuthStatus.initial) {
+              return const Scaffold(
+                backgroundColor: Colors.black,
+                body: Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+              );
+            }
+
+            // Show auth screen if not authenticated
+            if (!auth.isAuthenticated) {
+              return const AuthScreen();
+            }
+
+            // Show character creation if authenticated
+            return const CreateCharacterScreen();
+          },
+        ),
+      ),
     );
   }
 }

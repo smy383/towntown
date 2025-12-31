@@ -31,6 +31,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Kakao Login - TODO: Replace with your actual Kakao Native App Key
+        manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = "YOUR_KAKAO_NATIVE_APP_KEY"
     }
 
     buildTypes {

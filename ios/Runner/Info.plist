@@ -45,5 +45,36 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- URL Schemes for Social Login -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<!-- Google Sign In - TODO: Replace with your REVERSED_CLIENT_ID from Google Cloud Console -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.471086979502-XXXXXXXXXXXX</string>
+			</array>
+		</dict>
+		<!-- Kakao - TODO: Replace YOUR_KAKAO_NATIVE_APP_KEY with actual key -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakaoYOUR_KAKAO_NATIVE_APP_KEY</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Kakao Query Schemes -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaokompassauth</string>
+		<string>kakaolink</string>
+		<string>kakaoplus</string>
+	</array>
 </dict>
 </plist>
