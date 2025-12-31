@@ -1548,6 +1548,13 @@ class _VillageLandState extends State<VillageLand>
   late List<DrawingStroke> _characterStrokes;
   DateTime? _lastNameChangeDate;
 
+  // 채팅/말풍선 관련
+  final TextEditingController _chatController = TextEditingController();
+  final FocusNode _chatFocusNode = FocusNode();
+  String? _speechBubbleText;
+  DateTime? _speechBubbleTime;
+  bool _isSpeechBubblePinned = false; // 말풍선 고정 여부
+
   @override
   void initState() {
     super.initState();
@@ -1588,7 +1595,62 @@ class _VillageLandState extends State<VillageLand>
   void dispose() {
     _moveController?.dispose();
     _walkController.dispose();
+    _chatController.dispose();
+    _chatFocusNode.dispose();
     super.dispose();
+  }
+
+  // 채팅 메시지 전송
+  void _sendChat() {
+    final text = _chatController.text.trim();
+    if (text.isEmpty) return;
+
+    final wasPinned = _isSpeechBubblePinned;
+
+    setState(() {
+      _speechBubbleText = text;
+      _speechBubbleTime = DateTime.now();
+      // 이미 고정 상태였으면 계속 고정 유지
+      _isSpeechBubblePinned = wasPinned;
+    });
+    _chatController.clear();
+    _chatFocusNode.unfocus();
+
+    // 고정 상태가 아닐 때만 5초 후 사라짐
+    if (!wasPinned) {
+      _scheduleHideBubble();
+    }
+  }
+
+  // 말풍선 자동 숨김 예약
+  void _scheduleHideBubble() {
+    final currentTime = _speechBubbleTime;
+    Future.delayed(const Duration(seconds: 5), () {
+      // 고정 상태면 사라지지 않음
+      if (_isSpeechBubblePinned) return;
+      // 시간이 변경됐으면 (새 메시지) 무시
+      if (_speechBubbleTime != currentTime) return;
+
+      setState(() {
+        _speechBubbleText = null;
+        _speechBubbleTime = null;
+      });
+    });
+  }
+
+  // 말풍선 고정 토글
+  void _togglePinBubble() {
+    if (_speechBubbleText == null) return;
+
+    setState(() {
+      _isSpeechBubblePinned = !_isSpeechBubblePinned;
+    });
+
+    // 고정 해제하면 5초 후 사라짐
+    if (!_isSpeechBubblePinned) {
+      _speechBubbleTime = DateTime.now();
+      _scheduleHideBubble();
+    }
   }
 
   // 캐릭터 탭 시 수정 버튼 표시
@@ -1860,12 +1922,22 @@ class _VillageLandState extends State<VillageLand>
     final charScreenPos = _characterScreenPos;
     final camera = _cameraOffset;
 
-    // 캐릭터 영역 (수정 버튼 포함)
+    // 캐릭터 영역 (말풍선, 수정 버튼 포함)
+    final bubbleHeight = _speechBubbleText != null ? 60.0 : 0.0;
+    final editButtonHeight = _showEditButton ? 40.0 : 0.0;
     final characterRect = Rect.fromLTWH(
       charScreenPos.dx - 10,
-      charScreenPos.dy - (_showEditButton ? 40 : 0),
+      charScreenPos.dy - bubbleHeight - editButtonHeight,
       80,
-      130 + (_showEditButton ? 40 : 0),
+      130 + bubbleHeight + editButtonHeight,
+    );
+
+    // 채팅창 영역
+    final chatInputRect = Rect.fromLTWH(
+      0,
+      _screenSize.height - 80,
+      _screenSize.width,
+      80,
     );
 
     return Scaffold(
@@ -1873,8 +1945,8 @@ class _VillageLandState extends State<VillageLand>
       body: GestureDetector(
         onTapDown: (details) {
           final tapPos = details.localPosition;
-          // 캐릭터 영역 내 터치는 무시 (자식 위젯이 처리)
-          if (characterRect.contains(tapPos)) {
+          // 캐릭터 영역 또는 채팅창 영역 터치는 무시
+          if (characterRect.contains(tapPos) || chatInputRect.contains(tapPos)) {
             return;
           }
           _hideEditButton();
@@ -1882,8 +1954,8 @@ class _VillageLandState extends State<VillageLand>
         },
         onLongPressStart: (details) {
           final tapPos = details.localPosition;
-          // 캐릭터 영역 내 터치는 무시
-          if (characterRect.contains(tapPos)) {
+          // 캐릭터 영역 또는 채팅창 영역 터치는 무시
+          if (characterRect.contains(tapPos) || chatInputRect.contains(tapPos)) {
             return;
           }
           _hideEditButton();
@@ -1901,55 +1973,17 @@ class _VillageLandState extends State<VillageLand>
               ),
             ),
 
+            // 캐릭터 + 이름
             Positioned(
               left: charScreenPos.dx,
               top: charScreenPos.dy,
               child: Column(
                 children: [
-                  // 수정 버튼 (캐릭터 상단)
-                  if (_showEditButton)
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTapDown: (_) {}, // 이벤트 흡수
-                      onTap: _showEditOptions,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blue.withOpacity(0.5),
-                              blurRadius: 8,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.edit, color: Colors.white, size: 14),
-                            SizedBox(width: 4),
-                            Text(
-                              '수정',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
                   // 캐릭터
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTapDown: (_) {}, // 이벤트 흡수
                     onTap: () {
-                      // 캐릭터 탭 시 수정 버튼 토글 (이동 방지)
                       _onCharacterTap();
                     },
                     child: Transform(
@@ -1959,7 +1993,6 @@ class _VillageLandState extends State<VillageLand>
                       child: AnimatedBuilder(
                         animation: _walkController,
                         builder: (context, child) {
-                          // 사용자가 그린 캐릭터가 있으면 항상 사용 (애니메이션 포함)
                           if (_characterStrokes.isNotEmpty) {
                             return CustomPaint(
                               size: const Size(60, 100),
@@ -1971,7 +2004,6 @@ class _VillageLandState extends State<VillageLand>
                               ),
                             );
                           }
-                          // 그림이 없으면 졸라맨
                           return CustomPaint(
                             size: const Size(60, 100),
                             painter: StickmanPainter(
@@ -1993,6 +2025,163 @@ class _VillageLandState extends State<VillageLand>
                     ),
                   ),
                 ],
+              ),
+            ),
+
+            // 수정 버튼 (캐릭터 위)
+            if (_showEditButton)
+              Positioned(
+                left: charScreenPos.dx - 5,
+                top: charScreenPos.dy - 40,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) {},
+                  onTap: _showEditOptions,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.5),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.edit, color: Colors.white, size: 14),
+                        SizedBox(width: 4),
+                        Text(
+                          '수정',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            // 말풍선 (캐릭터 위, 중앙 정렬)
+            if (_speechBubbleText != null)
+              Positioned(
+                left: charScreenPos.dx + 30, // 캐릭터 중앙
+                top: charScreenPos.dy - (_showEditButton ? 100 : 60),
+                child: FractionalTranslation(
+                  translation: const Offset(-0.5, 0), // 중앙 정렬
+                  child: GestureDetector(
+                    onTap: _togglePinBubble,
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          constraints: const BoxConstraints(maxWidth: 200),
+                          decoration: BoxDecoration(
+                            color: _isSpeechBubblePinned ? Colors.black : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: _isSpeechBubblePinned
+                                ? Border.all(color: Colors.white, width: 2)
+                                : null,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _speechBubbleText!,
+                                style: TextStyle(
+                                  color: _isSpeechBubblePinned ? Colors.white : Colors.black,
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              if (_isSpeechBubblePinned)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Icon(
+                                    Icons.push_pin,
+                                    size: 12,
+                                    color: Colors.white54,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        CustomPaint(
+                          size: const Size(16, 8),
+                          painter: SpeechBubbleTailPainter(
+                            isPinned: _isSpeechBubblePinned,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            // 채팅 입력창 (하단)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade900,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _chatController,
+                        focusNode: _chatFocusNode,
+                        maxLength: 100,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          hintText: '메시지를 입력하세요...',
+                          hintStyle: TextStyle(color: Colors.white38),
+                          border: InputBorder.none,
+                          counterText: '', // 글자수 카운터 숨김
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                        ),
+                        onSubmitted: (_) => _sendChat(),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _sendChat,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(right: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.send,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -2044,4 +2233,39 @@ class WorldGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// 말풍선 꼬리
+class SpeechBubbleTailPainter extends CustomPainter {
+  final bool isPinned;
+
+  SpeechBubbleTailPainter({this.isPinned = false});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final fillPaint = Paint()
+      ..color = isPinned ? Colors.black : Colors.white
+      ..style = PaintingStyle.fill;
+
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+
+    canvas.drawPath(path, fillPaint);
+
+    // 고정 상태일 때 테두리
+    if (isPinned) {
+      final borderPaint = Paint()
+        ..color = Colors.white
+        ..strokeWidth = 2
+        ..style = PaintingStyle.stroke;
+      canvas.drawPath(path, borderPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant SpeechBubbleTailPainter oldDelegate) =>
+      oldDelegate.isPinned != isPinned;
 }
