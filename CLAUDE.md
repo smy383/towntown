@@ -124,6 +124,42 @@ lib/
 - Elbow joints bend forward only (negative direction in angle calculation)
 - Character faces direction of movement via `Matrix4.scale` transform
 
+## Current Implementation Status
+
+### Completed
+- [x] Firebase 프로젝트 설정 (neontown)
+- [x] Google 로그인 (Android, iOS, Web)
+- [x] Cloud Firestore 설정 (asia-northeast3)
+- [x] 보안 규칙 (firestore.rules)
+- [x] HomeScreen (메인 메뉴)
+- [x] 다국어 지원 (ko, en, ja)
+- [x] 언어 수동 선택 기능 (설정 메뉴)
+- [x] LocaleProvider (SharedPreferences 저장)
+- [x] 네온사인 스타일 타이틀 (NEON: 보라 / TOWN: 시안)
+
+### In Progress
+- [ ] Apple 로그인 설정 (Apple Developer 설정 필요)
+- [ ] Kakao 로그인 설정 (Kakao Developers 설정 필요)
+
+### Pending
+- [ ] 마을 만들기 기능
+- [ ] 마을 탐험 기능
+- [ ] 내 마을 기능
+- [ ] 캐릭터 생성 화면 연결
+- [ ] 프로필/내 정보 화면
+
+## Firebase Configuration
+
+- **Project ID**: neontown
+- **Project Number**: 471086979502
+- **Firestore Region**: asia-northeast3 (Seoul)
+- **Web Client ID**: 471086979502-96qdivr6mhcsfja1kc5sdllk4mgl4tnc.apps.googleusercontent.com
+
+### Enabled APIs
+- Cloud Firestore
+- Firebase Authentication
+- People API (for Google Sign-In on Web)
+
 ## Future Integration
 
 See `TECHNICAL_GUIDE.md` for reference implementation patterns for:
