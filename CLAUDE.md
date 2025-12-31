@@ -84,6 +84,12 @@ flutter test
 
 # Analyze code
 flutter analyze
+
+# Build and deploy web
+flutter build web && firebase deploy --only hosting
+
+# Build APK
+flutter build apk --debug
 ```
 
 ## Architecture
@@ -136,13 +142,14 @@ lib/
 - [x] 언어 수동 선택 기능 (설정 메뉴)
 - [x] LocaleProvider (SharedPreferences 저장)
 - [x] 네온사인 스타일 타이틀 (NEON: 보라 / TOWN: 시안)
+- [x] 마을 생성 기능
+- [x] Firebase Hosting 배포 설정
 
 ### In Progress
 - [ ] Apple 로그인 설정 (Apple Developer 설정 필요)
 - [ ] Kakao 로그인 설정 (Kakao Developers 설정 필요)
 
 ### Pending
-- [ ] 마을 만들기 기능
 - [ ] 마을 탐험 기능
 - [ ] 내 마을 기능
 - [ ] 캐릭터 생성 화면 연결
@@ -154,10 +161,12 @@ lib/
 - **Project Number**: 471086979502
 - **Firestore Region**: asia-northeast3 (Seoul)
 - **Web Client ID**: 471086979502-96qdivr6mhcsfja1kc5sdllk4mgl4tnc.apps.googleusercontent.com
+- **Hosting URL**: https://neontown.web.app
 
 ### Enabled APIs
 - Cloud Firestore
 - Firebase Authentication
+- Firebase Hosting
 - People API (for Google Sign-In on Web)
 
 ## Future Integration
