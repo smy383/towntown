@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'dart:math';
 
 void main() {
@@ -779,7 +780,7 @@ class WalkCycle {
   }
 }
 
-/// 졸라맨 그리기 (관절 시스템)
+/// 졸라맨 그리기 (관절 시스템) - 네온 효과
 class StickmanPainter extends CustomPainter {
   final double animationValue;
   final bool isMoving;
@@ -791,17 +792,44 @@ class StickmanPainter extends CustomPainter {
     required this.isRunning,
   });
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+  // 네온 선 그리기
+  void _drawNeonLine(Canvas canvas, Offset start, Offset end, double strokeWidth) {
+    // 글로우 효과
+    for (int i = 3; i >= 1; i--) {
+      final glowPaint = Paint()
+        ..color = Colors.white.withOpacity(0.3)
+        ..strokeWidth = strokeWidth + (i * 4)
+        ..strokeCap = StrokeCap.round
+        ..style = PaintingStyle.stroke
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, i * 2.0);
+      canvas.drawLine(start, end, glowPaint);
+    }
+    // 코어
+    final corePaint = Paint()
       ..color = Colors.white
-      ..strokeWidth = 3
+      ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
+    canvas.drawLine(start, end, corePaint);
+  }
 
-    final headPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
+  // 네온 원 그리기 (머리용)
+  void _drawNeonCircle(Canvas canvas, Offset center, double radius) {
+    // 글로우 효과
+    for (int i = 3; i >= 1; i--) {
+      final glowPaint = Paint()
+        ..color = Colors.white.withOpacity(0.3)
+        ..style = PaintingStyle.fill
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, i * 3.0);
+      canvas.drawCircle(center, radius + (i * 2), glowPaint);
+    }
+    // 코어
+    canvas.drawCircle(center, radius, Paint()..color = Colors.white);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const strokeWidth = 3.0;
 
     // 기본 치수
     final cx = size.width / 2;
@@ -815,7 +843,7 @@ class StickmanPainter extends CustomPainter {
 
     // 서 있을 때는 정면 뷰
     if (!isMoving) {
-      _drawFrontView(canvas, size, paint, headPaint, cx, headRadius,
+      _drawFrontView(canvas, size, strokeWidth, cx, headRadius,
           neckLength, torsoLength, upperArmLength, lowerArmLength,
           upperLegLength, lowerLegLength);
       return;
@@ -843,21 +871,18 @@ class StickmanPainter extends CustomPainter {
     final headCenter = Joint(neckTop.x, neckTop.y - headRadius);
 
     // 머리 그리기
-    canvas.drawCircle(Offset(headCenter.x, headCenter.y), headRadius, headPaint);
+    _drawNeonCircle(canvas, Offset(headCenter.x, headCenter.y), headRadius);
 
     // 목 그리기
-    canvas.drawLine(
+    _drawNeonLine(
+      canvas,
       Offset(shoulder.x, shoulder.y),
       Offset(neckTop.x, neckTop.y),
-      paint,
+      strokeWidth,
     );
 
     // 몸통 그리기
-    canvas.drawLine(
-      Offset(shoulder.x, shoulder.y),
-      Offset(hip.x, hip.y),
-      paint,
-    );
+    _drawNeonLine(canvas, Offset(shoulder.x, shoulder.y), Offset(hip.x, hip.y), strokeWidth);
 
     // 어깨 너비 (양쪽으로 팔이 나옴)
     final shoulderWidth = size.width * 0.18;
@@ -865,10 +890,11 @@ class StickmanPainter extends CustomPainter {
     final rightShoulderJoint = Joint(shoulder.x + shoulderWidth, shoulder.y);
 
     // === 어깨선 그리기 ===
-    canvas.drawLine(
+    _drawNeonLine(
+      canvas,
       Offset(leftShoulderJoint.x, leftShoulderJoint.y),
       Offset(rightShoulderJoint.x, rightShoulderJoint.y),
-      paint,
+      strokeWidth,
     );
 
     // === 왼쪽 팔 ===
@@ -881,15 +907,17 @@ class StickmanPainter extends CustomPainter {
     final leftHandAngle = leftUpperArmAngle - leftElbowBend;
     final leftHand = leftElbowPos.rotate(leftHandAngle, lowerArmLength);
 
-    canvas.drawLine(
+    _drawNeonLine(
+      canvas,
       Offset(leftShoulderJoint.x, leftShoulderJoint.y),
       Offset(leftElbowPos.x, leftElbowPos.y),
-      paint,
+      strokeWidth,
     );
-    canvas.drawLine(
+    _drawNeonLine(
+      canvas,
       Offset(leftElbowPos.x, leftElbowPos.y),
       Offset(leftHand.x, leftHand.y),
-      paint,
+      strokeWidth,
     );
 
     // === 오른쪽 팔 ===
@@ -902,15 +930,17 @@ class StickmanPainter extends CustomPainter {
     final rightHandAngle = rightUpperArmAngle - rightElbowBend;
     final rightHand = rightElbowPos.rotate(rightHandAngle, lowerArmLength);
 
-    canvas.drawLine(
+    _drawNeonLine(
+      canvas,
       Offset(rightShoulderJoint.x, rightShoulderJoint.y),
       Offset(rightElbowPos.x, rightElbowPos.y),
-      paint,
+      strokeWidth,
     );
-    canvas.drawLine(
+    _drawNeonLine(
+      canvas,
       Offset(rightElbowPos.x, rightElbowPos.y),
       Offset(rightHand.x, rightHand.y),
-      paint,
+      strokeWidth,
     );
 
     // === 왼쪽 다리 ===
@@ -922,16 +952,8 @@ class StickmanPainter extends CustomPainter {
     final leftFootAngle = leftHipAngle + leftKneeBend;
     final leftFoot = leftKneePos.rotate(leftFootAngle, lowerLegLength);
 
-    canvas.drawLine(
-      Offset(hip.x, hip.y),
-      Offset(leftKneePos.x, leftKneePos.y),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(leftKneePos.x, leftKneePos.y),
-      Offset(leftFoot.x, leftFoot.y),
-      paint,
-    );
+    _drawNeonLine(canvas, Offset(hip.x, hip.y), Offset(leftKneePos.x, leftKneePos.y), strokeWidth);
+    _drawNeonLine(canvas, Offset(leftKneePos.x, leftKneePos.y), Offset(leftFoot.x, leftFoot.y), strokeWidth);
 
     // === 오른쪽 다리 ===
     final rightHipAngle = pi / 2 + (isMoving ? pose['rightHip']! : 0);
@@ -941,24 +963,15 @@ class StickmanPainter extends CustomPainter {
     final rightFootAngle = rightHipAngle + rightKneeBend;
     final rightFoot = rightKneePos.rotate(rightFootAngle, lowerLegLength);
 
-    canvas.drawLine(
-      Offset(hip.x, hip.y),
-      Offset(rightKneePos.x, rightKneePos.y),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(rightKneePos.x, rightKneePos.y),
-      Offset(rightFoot.x, rightFoot.y),
-      paint,
-    );
+    _drawNeonLine(canvas, Offset(hip.x, hip.y), Offset(rightKneePos.x, rightKneePos.y), strokeWidth);
+    _drawNeonLine(canvas, Offset(rightKneePos.x, rightKneePos.y), Offset(rightFoot.x, rightFoot.y), strokeWidth);
   }
 
   // 정면 뷰 그리기
   void _drawFrontView(
     Canvas canvas,
     Size size,
-    Paint paint,
-    Paint headPaint,
+    double strokeWidth,
     double cx,
     double headRadius,
     double neckLength,
@@ -970,23 +983,24 @@ class StickmanPainter extends CustomPainter {
   ) {
     // 머리
     final headY = size.height * 0.12;
-    canvas.drawCircle(Offset(cx, headY), headRadius, headPaint);
+    _drawNeonCircle(canvas, Offset(cx, headY), headRadius);
 
     // 목
     final neckTop = headY + headRadius;
     final shoulderY = neckTop + neckLength;
-    canvas.drawLine(Offset(cx, neckTop), Offset(cx, shoulderY), paint);
+    _drawNeonLine(canvas, Offset(cx, neckTop), Offset(cx, shoulderY), strokeWidth);
 
     // 몸통
     final hipY = shoulderY + torsoLength;
-    canvas.drawLine(Offset(cx, shoulderY), Offset(cx, hipY), paint);
+    _drawNeonLine(canvas, Offset(cx, shoulderY), Offset(cx, hipY), strokeWidth);
 
     // 어깨선
     final shoulderWidth = size.width * 0.25;
-    canvas.drawLine(
+    _drawNeonLine(
+      canvas,
       Offset(cx - shoulderWidth, shoulderY),
       Offset(cx + shoulderWidth, shoulderY),
-      paint,
+      strokeWidth,
     );
 
     // 왼쪽 팔 (정면에서 볼 때 약간 벌어짐)
@@ -995,8 +1009,8 @@ class StickmanPainter extends CustomPainter {
     final leftElbowY = shoulderY + upperArmLength * 0.9;
     final leftHandX = leftElbowX - lowerArmLength * 0.2;
     final leftHandY = leftElbowY + lowerArmLength * 0.95;
-    canvas.drawLine(Offset(leftShoulderX, shoulderY), Offset(leftElbowX, leftElbowY), paint);
-    canvas.drawLine(Offset(leftElbowX, leftElbowY), Offset(leftHandX, leftHandY), paint);
+    _drawNeonLine(canvas, Offset(leftShoulderX, shoulderY), Offset(leftElbowX, leftElbowY), strokeWidth);
+    _drawNeonLine(canvas, Offset(leftElbowX, leftElbowY), Offset(leftHandX, leftHandY), strokeWidth);
 
     // 오른쪽 팔
     final rightShoulderX = cx + shoulderWidth;
@@ -1004,8 +1018,8 @@ class StickmanPainter extends CustomPainter {
     final rightElbowY = shoulderY + upperArmLength * 0.9;
     final rightHandX = rightElbowX + lowerArmLength * 0.2;
     final rightHandY = rightElbowY + lowerArmLength * 0.95;
-    canvas.drawLine(Offset(rightShoulderX, shoulderY), Offset(rightElbowX, rightElbowY), paint);
-    canvas.drawLine(Offset(rightElbowX, rightElbowY), Offset(rightHandX, rightHandY), paint);
+    _drawNeonLine(canvas, Offset(rightShoulderX, shoulderY), Offset(rightElbowX, rightElbowY), strokeWidth);
+    _drawNeonLine(canvas, Offset(rightElbowX, rightElbowY), Offset(rightHandX, rightHandY), strokeWidth);
 
     // 왼쪽 다리
     final hipWidth = size.width * 0.1;
@@ -1013,16 +1027,16 @@ class StickmanPainter extends CustomPainter {
     final leftKneeY = hipY + upperLegLength * 0.95;
     final leftFootX = leftKneeX;
     final leftFootY = leftKneeY + lowerLegLength;
-    canvas.drawLine(Offset(cx - hipWidth, hipY), Offset(leftKneeX, leftKneeY), paint);
-    canvas.drawLine(Offset(leftKneeX, leftKneeY), Offset(leftFootX, leftFootY), paint);
+    _drawNeonLine(canvas, Offset(cx - hipWidth, hipY), Offset(leftKneeX, leftKneeY), strokeWidth);
+    _drawNeonLine(canvas, Offset(leftKneeX, leftKneeY), Offset(leftFootX, leftFootY), strokeWidth);
 
     // 오른쪽 다리
     final rightKneeX = cx + hipWidth + upperLegLength * 0.15;
     final rightKneeY = hipY + upperLegLength * 0.95;
     final rightFootX = rightKneeX;
     final rightFootY = rightKneeY + lowerLegLength;
-    canvas.drawLine(Offset(cx + hipWidth, hipY), Offset(rightKneeX, rightKneeY), paint);
-    canvas.drawLine(Offset(rightKneeX, rightKneeY), Offset(rightFootX, rightFootY), paint);
+    _drawNeonLine(canvas, Offset(cx + hipWidth, hipY), Offset(rightKneeX, rightKneeY), strokeWidth);
+    _drawNeonLine(canvas, Offset(rightKneeX, rightKneeY), Offset(rightFootX, rightFootY), strokeWidth);
   }
 
   @override
@@ -2186,12 +2200,13 @@ class _VillageLandState extends State<VillageLand>
             if (_speechBubbleText != null)
               Positioned(
                 left: charScreenPos.dx + 30, // 캐릭터 중앙
-                top: charScreenPos.dy - (_showEditButton ? 100 : 60),
+                top: charScreenPos.dy - 10, // 캐릭터 바로 위
                 child: FractionalTranslation(
-                  translation: const Offset(-0.5, 0), // 중앙 정렬
+                  translation: const Offset(-0.5, -1.0), // 중앙 정렬 + 위로 확장
                   child: GestureDetector(
                     onTap: _togglePinBubble,
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2256,44 +2271,67 @@ class _VillageLandState extends State<VillageLand>
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: Colors.white24),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _chatController,
-                        focusNode: _chatFocusNode,
-                        maxLength: 100,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                          hintText: '메시지를 입력하세요...',
-                          hintStyle: TextStyle(color: Colors.white38),
-                          border: InputBorder.none,
-                          counterText: '', // 글자수 카운터 숨김
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
+                child: ListenableBuilder(
+                  listenable: _chatController,
+                  builder: (context, child) {
+                    final remaining = 50 - _chatController.text.length;
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _chatController,
+                            focusNode: _chatFocusNode,
+                            maxLength: 50,
+                            maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              hintText: '메시지를 입력하세요...',
+                              hintStyle: TextStyle(color: Colors.white38),
+                              border: InputBorder.none,
+                              counterText: '', // 글자수 카운터 숨김
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 14,
+                              ),
+                            ),
+                            onSubmitted: (_) => _sendChat(),
                           ),
                         ),
-                        onSubmitted: (_) => _sendChat(),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: _sendChat,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(right: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
+                        // 남은 글자 수 표시
+                        if (_chatController.text.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Text(
+                              '$remaining',
+                              style: TextStyle(
+                                color: remaining <= 5
+                                    ? Colors.red
+                                    : remaining <= 15
+                                        ? Colors.orange
+                                        : Colors.white38,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        GestureDetector(
+                          onTap: _sendChat,
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(right: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.send,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.send,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
