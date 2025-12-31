@@ -10,63 +10,6 @@ class FeedScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'NEON',
-                style: TextStyle(
-                  color: Colors.purpleAccent[100],
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  letterSpacing: 4,
-                  shadows: [
-                    Shadow(
-                      color: Colors.purpleAccent.withOpacity(0.8),
-                      blurRadius: 10,
-                    ),
-                    Shadow(
-                      color: Colors.purpleAccent.withOpacity(0.6),
-                      blurRadius: 20,
-                    ),
-                    Shadow(
-                      color: Colors.purpleAccent.withOpacity(0.4),
-                      blurRadius: 30,
-                    ),
-                  ],
-                ),
-              ),
-              TextSpan(
-                text: 'TOWN',
-                style: TextStyle(
-                  color: Colors.cyanAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  letterSpacing: 4,
-                  shadows: [
-                    Shadow(
-                      color: Colors.cyanAccent.withOpacity(0.8),
-                      blurRadius: 10,
-                    ),
-                    Shadow(
-                      color: Colors.cyanAccent.withOpacity(0.6),
-                      blurRadius: 20,
-                    ),
-                    Shadow(
-                      color: Colors.cyanAccent.withOpacity(0.4),
-                      blurRadius: 30,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        centerTitle: true,
-      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

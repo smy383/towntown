@@ -10,204 +10,180 @@ class TownScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'NEON',
-                style: TextStyle(
-                  color: Colors.purpleAccent[100],
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  letterSpacing: 4,
-                  shadows: [
-                    Shadow(
-                      color: Colors.purpleAccent.withOpacity(0.8),
-                      blurRadius: 10,
-                    ),
-                    Shadow(
-                      color: Colors.purpleAccent.withOpacity(0.6),
-                      blurRadius: 20,
-                    ),
-                    Shadow(
-                      color: Colors.purpleAccent.withOpacity(0.4),
-                      blurRadius: 30,
-                    ),
-                  ],
-                ),
+      body: _buildVillageList(context, l10n),
+    );
+  }
+
+  Widget _buildVillageList(BuildContext context, L10n l10n) {
+    // TODO: 실제 마을 데이터로 교체
+    final List<Map<String, dynamic>> villages = [];
+
+    if (villages.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                borderRadius: BorderRadius.circular(50),
               ),
-              TextSpan(
-                text: 'TOWN',
-                style: TextStyle(
-                  color: Colors.cyanAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  letterSpacing: 4,
-                  shadows: [
-                    Shadow(
-                      color: Colors.cyanAccent.withOpacity(0.8),
-                      blurRadius: 10,
-                    ),
-                    Shadow(
-                      color: Colors.cyanAccent.withOpacity(0.6),
-                      blurRadius: 20,
-                    ),
-                    Shadow(
-                      color: Colors.cyanAccent.withOpacity(0.4),
-                      blurRadius: 30,
-                    ),
-                  ],
-                ),
+              child: Icon(
+                Icons.location_city_outlined,
+                size: 48,
+                color: Colors.grey[600],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              l10n.townEmpty,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.townEmptyDesc,
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 40),
+      );
+    }
 
-              Text(
-                l10n.homeWelcome,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.homeSubtitle,
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 60),
-
-              _MenuCard(
-                icon: Icons.add_home_outlined,
-                title: l10n.createVillage,
-                subtitle: l10n.createVillageDesc,
-                color: Colors.blue,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.comingSoon)),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              _MenuCard(
-                icon: Icons.explore_outlined,
-                title: l10n.exploreVillage,
-                subtitle: l10n.exploreVillageDesc,
-                color: Colors.green,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.comingSoon)),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              _MenuCard(
-                icon: Icons.home_outlined,
-                title: l10n.myVillage,
-                subtitle: l10n.myVillageDesc,
-                color: Colors.orange,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.comingSoon)),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: villages.length,
+      itemBuilder: (context, index) {
+        final village = villages[index];
+        return _VillageCard(
+          name: village['name'] as String,
+          description: village['description'] as String,
+          memberCount: village['memberCount'] as int,
+          imageUrl: village['imageUrl'] as String?,
+          onTap: () {
+            // TODO: 마을 상세 페이지로 이동
+          },
+        );
+      },
     );
   }
 }
 
-class _MenuCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color color;
+class _VillageCard extends StatelessWidget {
+  final String name;
+  final String description;
+  final int memberCount;
+  final String? imageUrl;
   final VoidCallback onTap;
 
-  const _MenuCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.color,
+  const _VillageCard({
+    required this.name,
+    required this.description,
+    required this.memberCount,
+    this.imageUrl,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.grey[900],
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.grey[900],
         borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // 마을 이미지/아이콘
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.cyanAccent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.cyanAccent.withOpacity(0.3),
+                      width: 1,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
+                  ),
+                  child: imageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(11),
+                          child: Image.network(
+                            imageUrl!,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Icon(
+                          Icons.location_city,
+                          color: Colors.cyanAccent.withOpacity(0.7),
+                          size: 28,
+                        ),
                 ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey[600],
-              ),
-            ],
+                const SizedBox(width: 16),
+                // 마을 정보
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 13,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.people,
+                            size: 14,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$memberCount',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey[600],
+                ),
+              ],
+            ),
           ),
         ),
       ),

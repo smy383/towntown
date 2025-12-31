@@ -32,5 +32,7 @@
   "searchVillages": "마을",
   "searchUsers": "사용자",
   "searchEmpty": "검색 결과가 없습니다",
-  "townTitle": "마을"
+  "townTitle": "마을",
+  "townEmpty": "마을이 없습니다",
+  "townEmptyDesc": "마을을 만들거나 다른 마을에 가입해보세요"
 }

@@ -32,5 +32,7 @@
   "searchVillages": "Villages",
   "searchUsers": "Users",
   "searchEmpty": "No results found",
-  "townTitle": "Town"
+  "townTitle": "Town",
+  "townEmpty": "No villages yet",
+  "townEmptyDesc": "Create a village or join others"
 }

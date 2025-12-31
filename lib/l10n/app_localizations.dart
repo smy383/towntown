@@ -296,6 +296,18 @@ abstract class L10n {
   /// In ko, this message translates to:
   /// **'마을'**
   String get townTitle;
+
+  /// No description provided for @townEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을이 없습니다'**
+  String get townEmpty;
+
+  /// No description provided for @townEmptyDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을을 만들거나 다른 마을에 가입해보세요'**
+  String get townEmptyDesc;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

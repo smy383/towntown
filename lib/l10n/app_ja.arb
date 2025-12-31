@@ -32,5 +32,7 @@
   "searchVillages": "村",
   "searchUsers": "ユーザー",
   "searchEmpty": "検索結果がありません",
-  "townTitle": "タウン"
+  "townTitle": "タウン",
+  "townEmpty": "村がありません",
+  "townEmptyDesc": "村を作るか、他の村に参加しましょう"
 }

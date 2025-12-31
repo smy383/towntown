@@ -106,4 +106,10 @@ class L10nEn extends L10n {
 
   @override
   String get townTitle => 'Town';
+
+  @override
+  String get townEmpty => 'No villages yet';
+
+  @override
+  String get townEmptyDesc => 'Create a village or join others';
 }

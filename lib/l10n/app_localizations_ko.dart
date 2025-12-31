@@ -106,4 +106,10 @@ class L10nKo extends L10n {
 
   @override
   String get townTitle => '마을';
+
+  @override
+  String get townEmpty => '마을이 없습니다';
+
+  @override
+  String get townEmptyDesc => '마을을 만들거나 다른 마을에 가입해보세요';
 }

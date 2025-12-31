@@ -32,25 +32,6 @@ class _SearchScreenState extends State<SearchScreen>
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          l10n.searchTitle,
-          style: TextStyle(
-            color: Colors.cyanAccent,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            shadows: [
-              Shadow(
-                color: Colors.cyanAccent.withOpacity(0.6),
-                blurRadius: 10,
-              ),
-            ],
-          ),
-        ),
-        centerTitle: true,
-      ),
       body: Column(
         children: [
           // Search bar

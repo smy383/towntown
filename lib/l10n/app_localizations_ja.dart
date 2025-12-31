@@ -106,4 +106,10 @@ class L10nJa extends L10n {
 
   @override
   String get townTitle => 'タウン';
+
+  @override
+  String get townEmpty => '村がありません';
+
+  @override
+  String get townEmptyDesc => '村を作るか、他の村に参加しましょう';
 }
