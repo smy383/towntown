@@ -1,4 +1,4 @@
-# NeonTown (네온타운)
+# TownTown (타운타운)
 
 마을 기반 SNS 메타버스 앱
 
@@ -28,27 +28,85 @@
 - 5초 후 자동 사라짐
 - 말풍선 고정 기능 (탭하면 핀 고정)
 
+### 소셜 로그인 (구현 완료 - 테스트 필요)
+- **Google 로그인**: google_sign_in 패키지
+- **Apple 로그인**: sign_in_with_apple 패키지 (iOS/macOS/Web)
+- **Kakao 로그인**: kakao_flutter_sdk_user + Firebase Cloud Functions
+- Provider 상태 관리
+- Firestore 사용자 프로필 저장
+
 ### Firebase 연동
 - Firebase 프로젝트: `neontown`
 - 지원 플랫폼: iOS, Android, Web
-- 패키지: firebase_core, firebase_auth, cloud_firestore
+- 사용 패키지:
+  - firebase_core, firebase_auth, cloud_firestore, cloud_functions
+  - provider (상태 관리)
+  - google_sign_in, sign_in_with_apple, kakao_flutter_sdk_user
 
 ## 기술 스택
 
 - **프레임워크**: Flutter
 - **언어**: Dart
 - **백엔드**: Firebase
-  - Authentication (예정)
-  - Cloud Firestore (예정)
-  - Storage (예정)
+  - Authentication (Google, Apple 활성화 필요)
+  - Cloud Firestore (사용자 프로필)
+  - Cloud Functions (카카오 인증)
 
-## 다음 단계 (TODO)
+## 프로젝트 구조
 
-- [ ] Authentication 설정 (로그인/회원가입)
-- [ ] Firestore 데이터 모델 설계
-- [ ] 캐릭터 데이터 저장
-- [ ] 실시간 멀티플레이어 동기화
-- [ ] 채팅 메시지 저장
+```
+lib/
+├── main.dart                    # 앱 진입점
+├── firebase_options.dart        # Firebase 설정
+├── models/
+│   └── user_model.dart          # 사용자 모델
+├── services/
+│   └── auth_service.dart        # 인증 서비스
+├── providers/
+│   └── auth_provider.dart       # 인증 상태 관리
+└── screens/
+    ├── auth_screen.dart         # 로그인 화면
+    ├── create_character_screen.dart
+    ├── character_design_screen.dart
+    └── village_land.dart
+
+functions/
+├── src/
+│   ├── index.ts                 # Functions 진입점
+│   └── kakao-auth.ts            # 카카오 토큰 검증
+├── package.json
+└── tsconfig.json
+```
+
+## 설정 필요 사항 (TODO)
+
+### 1. Firebase Blaze Plan 업그레이드
+Cloud Functions 사용을 위해 필요합니다.
+
+### 2. API 키 설정
+다음 파일에서 플레이스홀더를 실제 키로 교체:
+
+| 파일 | 교체할 값 |
+|------|----------|
+| `lib/main.dart` | `YOUR_KAKAO_NATIVE_APP_KEY`, `YOUR_KAKAO_JAVASCRIPT_KEY` |
+| `android/app/build.gradle.kts` | `YOUR_KAKAO_NATIVE_APP_KEY` |
+| `ios/Runner/Info.plist` | `YOUR_KAKAO_NATIVE_APP_KEY` |
+| `web/index.html` | Google Client ID (471086979502-XXXX) |
+
+### 3. Firebase Console 설정
+- Authentication → Google 로그인 활성화
+- Authentication → Apple 로그인 활성화
+
+### 4. Xcode 설정
+- Runner → Signing & Capabilities → + Sign in with Apple
+
+### 5. Cloud Functions 배포
+```bash
+cd functions
+npm install
+cd ..
+firebase deploy --only functions
+```
 
 ## 실행 방법
 
@@ -57,7 +115,7 @@
 flutter pub get
 
 # 웹으로 실행
-flutter run -d chrome
+flutter run -d chrome --web-port=8080
 
 # iOS 시뮬레이터
 flutter run -d ios
@@ -66,10 +124,11 @@ flutter run -d ios
 flutter run -d android
 ```
 
-## 프로젝트 구조
+## 다음 단계 (TODO)
 
-```
-lib/
-├── main.dart              # 메인 앱 코드
-├── firebase_options.dart  # Firebase 설정
-```
+- [ ] API 키 설정 및 테스트
+- [ ] Firebase Console에서 Google/Apple 로그인 활성화
+- [ ] Cloud Functions 배포
+- [ ] 캐릭터 데이터 Firestore 저장
+- [ ] 실시간 멀티플레이어 동기화
+- [ ] 채팅 메시지 저장
