@@ -19,5 +19,18 @@
   "createCharacter": "캐릭터 만들기",
   "language": "언어",
   "languageSystem": "시스템 설정",
-  "languageSelect": "언어 선택"
+  "languageSelect": "언어 선택",
+  "navHome": "홈",
+  "navSearch": "검색",
+  "navTown": "마을",
+  "navSettings": "설정",
+  "feedTitle": "피드",
+  "feedEmpty": "아직 소식이 없습니다",
+  "feedEmptyDesc": "마을에 가입하면 소식이 여기에 표시됩니다",
+  "searchTitle": "검색",
+  "searchHint": "마을이나 사용자 검색",
+  "searchVillages": "마을",
+  "searchUsers": "사용자",
+  "searchEmpty": "검색 결과가 없습니다",
+  "townTitle": "마을"
 }

@@ -19,5 +19,18 @@
   "createCharacter": "キャラクター作成",
   "language": "言語",
   "languageSystem": "システム設定",
-  "languageSelect": "言語を選択"
+  "languageSelect": "言語を選択",
+  "navHome": "ホーム",
+  "navSearch": "検索",
+  "navTown": "タウン",
+  "navSettings": "設定",
+  "feedTitle": "フィード",
+  "feedEmpty": "まだニュースがありません",
+  "feedEmptyDesc": "村に参加するとここにニュースが表示されます",
+  "searchTitle": "検索",
+  "searchHint": "村やユーザーを検索",
+  "searchVillages": "村",
+  "searchUsers": "ユーザー",
+  "searchEmpty": "検索結果がありません",
+  "townTitle": "タウン"
 }

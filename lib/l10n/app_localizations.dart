@@ -218,6 +218,84 @@ abstract class L10n {
   /// In ko, this message translates to:
   /// **'언어 선택'**
   String get languageSelect;
+
+  /// No description provided for @navHome.
+  ///
+  /// In ko, this message translates to:
+  /// **'홈'**
+  String get navHome;
+
+  /// No description provided for @navSearch.
+  ///
+  /// In ko, this message translates to:
+  /// **'검색'**
+  String get navSearch;
+
+  /// No description provided for @navTown.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을'**
+  String get navTown;
+
+  /// No description provided for @navSettings.
+  ///
+  /// In ko, this message translates to:
+  /// **'설정'**
+  String get navSettings;
+
+  /// No description provided for @feedTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'피드'**
+  String get feedTitle;
+
+  /// No description provided for @feedEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 소식이 없습니다'**
+  String get feedEmpty;
+
+  /// No description provided for @feedEmptyDesc.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을에 가입하면 소식이 여기에 표시됩니다'**
+  String get feedEmptyDesc;
+
+  /// No description provided for @searchTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'검색'**
+  String get searchTitle;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을이나 사용자 검색'**
+  String get searchHint;
+
+  /// No description provided for @searchVillages.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을'**
+  String get searchVillages;
+
+  /// No description provided for @searchUsers.
+  ///
+  /// In ko, this message translates to:
+  /// **'사용자'**
+  String get searchUsers;
+
+  /// No description provided for @searchEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'검색 결과가 없습니다'**
+  String get searchEmpty;
+
+  /// No description provided for @townTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을'**
+  String get townTitle;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

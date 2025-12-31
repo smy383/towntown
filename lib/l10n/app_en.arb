@@ -19,5 +19,18 @@
   "createCharacter": "Create Character",
   "language": "Language",
   "languageSystem": "System Default",
-  "languageSelect": "Select Language"
+  "languageSelect": "Select Language",
+  "navHome": "Home",
+  "navSearch": "Search",
+  "navTown": "Town",
+  "navSettings": "Settings",
+  "feedTitle": "Feed",
+  "feedEmpty": "No news yet",
+  "feedEmptyDesc": "Join a village to see updates here",
+  "searchTitle": "Search",
+  "searchHint": "Search villages or users",
+  "searchVillages": "Villages",
+  "searchUsers": "Users",
+  "searchEmpty": "No results found",
+  "townTitle": "Town"
 }

@@ -67,4 +67,43 @@ class L10nEn extends L10n {
 
   @override
   String get languageSelect => 'Select Language';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navSearch => 'Search';
+
+  @override
+  String get navTown => 'Town';
+
+  @override
+  String get navSettings => 'Settings';
+
+  @override
+  String get feedTitle => 'Feed';
+
+  @override
+  String get feedEmpty => 'No news yet';
+
+  @override
+  String get feedEmptyDesc => 'Join a village to see updates here';
+
+  @override
+  String get searchTitle => 'Search';
+
+  @override
+  String get searchHint => 'Search villages or users';
+
+  @override
+  String get searchVillages => 'Villages';
+
+  @override
+  String get searchUsers => 'Users';
+
+  @override
+  String get searchEmpty => 'No results found';
+
+  @override
+  String get townTitle => 'Town';
 }

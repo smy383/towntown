@@ -67,4 +67,43 @@ class L10nKo extends L10n {
 
   @override
   String get languageSelect => '언어 선택';
+
+  @override
+  String get navHome => '홈';
+
+  @override
+  String get navSearch => '검색';
+
+  @override
+  String get navTown => '마을';
+
+  @override
+  String get navSettings => '설정';
+
+  @override
+  String get feedTitle => '피드';
+
+  @override
+  String get feedEmpty => '아직 소식이 없습니다';
+
+  @override
+  String get feedEmptyDesc => '마을에 가입하면 소식이 여기에 표시됩니다';
+
+  @override
+  String get searchTitle => '검색';
+
+  @override
+  String get searchHint => '마을이나 사용자 검색';
+
+  @override
+  String get searchVillages => '마을';
+
+  @override
+  String get searchUsers => '사용자';
+
+  @override
+  String get searchEmpty => '검색 결과가 없습니다';
+
+  @override
+  String get townTitle => '마을';
 }

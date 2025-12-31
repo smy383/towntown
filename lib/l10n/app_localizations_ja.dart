@@ -67,4 +67,43 @@ class L10nJa extends L10n {
 
   @override
   String get languageSelect => '言語を選択';
+
+  @override
+  String get navHome => 'ホーム';
+
+  @override
+  String get navSearch => '検索';
+
+  @override
+  String get navTown => 'タウン';
+
+  @override
+  String get navSettings => '設定';
+
+  @override
+  String get feedTitle => 'フィード';
+
+  @override
+  String get feedEmpty => 'まだニュースがありません';
+
+  @override
+  String get feedEmptyDesc => '村に参加するとここにニュースが表示されます';
+
+  @override
+  String get searchTitle => '検索';
+
+  @override
+  String get searchHint => '村やユーザーを検索';
+
+  @override
+  String get searchVillages => '村';
+
+  @override
+  String get searchUsers => 'ユーザー';
+
+  @override
+  String get searchEmpty => '検索結果がありません';
+
+  @override
+  String get townTitle => 'タウン';
 }

@@ -11,7 +11,7 @@ import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/locale_provider.dart';
 import 'screens/auth_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_navigation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,8 +71,8 @@ class TownTownApp extends StatelessWidget {
               return const AuthScreen();
             }
 
-            // Show home screen if authenticated
-            return const HomeScreen();
+            // Show main navigation screen if authenticated
+            return const MainNavigationScreen();
           },
         ),
         ),
