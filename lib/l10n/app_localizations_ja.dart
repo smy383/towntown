@@ -112,4 +112,34 @@ class L10nJa extends L10n {
 
   @override
   String get townEmptyDesc => '村を作るか、他の村に参加しましょう';
+
+  @override
+  String get createVillageTitle => '村を作る';
+
+  @override
+  String get villageNameHint => '村の名前を入力';
+
+  @override
+  String get villageNameLabel => '村の名前';
+
+  @override
+  String get villageCreating => '村を作成中...';
+
+  @override
+  String get villageCreated => '村が作成されました!';
+
+  @override
+  String get villageCreateButton => '村を作る';
+
+  @override
+  String get villageLocation => '場所';
+
+  @override
+  String get villageAlreadyExists => 'すでに村を持っています';
+
+  @override
+  String get findingLocation => '場所を探しています...';
+
+  @override
+  String get yourVillageLocation => 'あなたの村の場所';
 }

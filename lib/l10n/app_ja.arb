@@ -34,5 +34,15 @@
   "searchEmpty": "検索結果がありません",
   "townTitle": "タウン",
   "townEmpty": "村がありません",
-  "townEmptyDesc": "村を作るか、他の村に参加しましょう"
+  "townEmptyDesc": "村を作るか、他の村に参加しましょう",
+  "createVillageTitle": "村を作る",
+  "villageNameHint": "村の名前を入力",
+  "villageNameLabel": "村の名前",
+  "villageCreating": "村を作成中...",
+  "villageCreated": "村が作成されました!",
+  "villageCreateButton": "村を作る",
+  "villageLocation": "場所",
+  "villageAlreadyExists": "すでに村を持っています",
+  "findingLocation": "場所を探しています...",
+  "yourVillageLocation": "あなたの村の場所"
 }

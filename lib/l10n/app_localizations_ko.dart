@@ -112,4 +112,34 @@ class L10nKo extends L10n {
 
   @override
   String get townEmptyDesc => '마을을 만들거나 다른 마을에 가입해보세요';
+
+  @override
+  String get createVillageTitle => '마을 만들기';
+
+  @override
+  String get villageNameHint => '마을 이름을 입력하세요';
+
+  @override
+  String get villageNameLabel => '마을 이름';
+
+  @override
+  String get villageCreating => '마을을 생성하고 있습니다...';
+
+  @override
+  String get villageCreated => '마을이 생성되었습니다!';
+
+  @override
+  String get villageCreateButton => '마을 만들기';
+
+  @override
+  String get villageLocation => '위치';
+
+  @override
+  String get villageAlreadyExists => '이미 마을을 보유하고 있습니다';
+
+  @override
+  String get findingLocation => '위치를 찾고 있습니다...';
+
+  @override
+  String get yourVillageLocation => '당신의 마을 위치';
 }

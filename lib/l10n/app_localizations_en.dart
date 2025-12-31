@@ -112,4 +112,34 @@ class L10nEn extends L10n {
 
   @override
   String get townEmptyDesc => 'Create a village or join others';
+
+  @override
+  String get createVillageTitle => 'Create Village';
+
+  @override
+  String get villageNameHint => 'Enter village name';
+
+  @override
+  String get villageNameLabel => 'Village Name';
+
+  @override
+  String get villageCreating => 'Creating your village...';
+
+  @override
+  String get villageCreated => 'Village created!';
+
+  @override
+  String get villageCreateButton => 'Create Village';
+
+  @override
+  String get villageLocation => 'Location';
+
+  @override
+  String get villageAlreadyExists => 'You already have a village';
+
+  @override
+  String get findingLocation => 'Finding location...';
+
+  @override
+  String get yourVillageLocation => 'Your village location';
 }

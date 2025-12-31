@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'feed_screen.dart';
 import 'search_screen.dart';
 import 'town_screen.dart';
 import 'settings_screen.dart';
+import 'create_village_screen.dart';
+import '../providers/auth_provider.dart';
+import '../services/village_service.dart';
+import '../l10n/app_localizations.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -25,11 +30,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     Colors.blueAccent,
   ];
 
-  final List<Widget> _screens = const [
-    FeedScreen(),
-    SearchScreen(),
-    TownScreen(),
-    SettingsScreen(),
+  final List<Widget> _screens = [
+    const FeedScreen(),
+    const SearchScreen(),
+    const TownScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -195,6 +200,34 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     );
   }
 
+  Future<void> _onCreateVillagePressed(BuildContext context) async {
+    final l10n = L10n.of(context)!;
+    final authProvider = context.read<AuthProvider>();
+    final userId = authProvider.user?.uid;
+
+    if (userId == null) return;
+
+    // 이미 마을이 있는지 확인
+    final villageService = VillageService();
+    final hasVillage = await villageService.hasVillage(userId);
+
+    if (!mounted) return;
+
+    if (hasVillage) {
+      // 이미 마을이 있으면 알림
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.villageAlreadyExists)),
+      );
+    } else {
+      // 마을이 없으면 생성 화면으로 이동
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const CreateVillageScreen(),
+        ),
+      );
+    }
+  }
+
   List<Widget> _buildTownActions(BuildContext context) {
     return [
       IconButton(
@@ -233,11 +266,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
             ),
           ],
         ),
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('준비중...')),
-          );
-        },
+        onPressed: () => _onCreateVillagePressed(context),
       ),
       const SizedBox(width: 8),
     ];

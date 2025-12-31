@@ -308,6 +308,66 @@ abstract class L10n {
   /// In ko, this message translates to:
   /// **'마을을 만들거나 다른 마을에 가입해보세요'**
   String get townEmptyDesc;
+
+  /// No description provided for @createVillageTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을 만들기'**
+  String get createVillageTitle;
+
+  /// No description provided for @villageNameHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을 이름을 입력하세요'**
+  String get villageNameHint;
+
+  /// No description provided for @villageNameLabel.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을 이름'**
+  String get villageNameLabel;
+
+  /// No description provided for @villageCreating.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을을 생성하고 있습니다...'**
+  String get villageCreating;
+
+  /// No description provided for @villageCreated.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을이 생성되었습니다!'**
+  String get villageCreated;
+
+  /// No description provided for @villageCreateButton.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을 만들기'**
+  String get villageCreateButton;
+
+  /// No description provided for @villageLocation.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치'**
+  String get villageLocation;
+
+  /// No description provided for @villageAlreadyExists.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 마을을 보유하고 있습니다'**
+  String get villageAlreadyExists;
+
+  /// No description provided for @findingLocation.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치를 찾고 있습니다...'**
+  String get findingLocation;
+
+  /// No description provided for @yourVillageLocation.
+  ///
+  /// In ko, this message translates to:
+  /// **'당신의 마을 위치'**
+  String get yourVillageLocation;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

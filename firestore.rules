@@ -1,8 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // 사용자 컬렉션 - 본인만 읽기/쓰기 가능
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 마을 컬렉션
+    match /villages/{villageId} {
+      // 누구나 읽기 가능 (지구본에 마을 표시)
+      allow read: if request.auth != null;
+
+      // 생성: 로그인한 사용자, ownerId가 본인일 때만
+      allow create: if request.auth != null
+                    && request.resource.data.ownerId == request.auth.uid;
+
+      // 수정/삭제: 마을 소유자만
+      allow update, delete: if request.auth != null
+                            && resource.data.ownerId == request.auth.uid;
     }
   }
 }

@@ -34,5 +34,15 @@
   "searchEmpty": "검색 결과가 없습니다",
   "townTitle": "마을",
   "townEmpty": "마을이 없습니다",
-  "townEmptyDesc": "마을을 만들거나 다른 마을에 가입해보세요"
+  "townEmptyDesc": "마을을 만들거나 다른 마을에 가입해보세요",
+  "createVillageTitle": "마을 만들기",
+  "villageNameHint": "마을 이름을 입력하세요",
+  "villageNameLabel": "마을 이름",
+  "villageCreating": "마을을 생성하고 있습니다...",
+  "villageCreated": "마을이 생성되었습니다!",
+  "villageCreateButton": "마을 만들기",
+  "villageLocation": "위치",
+  "villageAlreadyExists": "이미 마을을 보유하고 있습니다",
+  "findingLocation": "위치를 찾고 있습니다...",
+  "yourVillageLocation": "당신의 마을 위치"
 }

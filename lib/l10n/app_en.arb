@@ -34,5 +34,15 @@
   "searchEmpty": "No results found",
   "townTitle": "Town",
   "townEmpty": "No villages yet",
-  "townEmptyDesc": "Create a village or join others"
+  "townEmptyDesc": "Create a village or join others",
+  "createVillageTitle": "Create Village",
+  "villageNameHint": "Enter village name",
+  "villageNameLabel": "Village Name",
+  "villageCreating": "Creating your village...",
+  "villageCreated": "Village created!",
+  "villageCreateButton": "Create Village",
+  "villageLocation": "Location",
+  "villageAlreadyExists": "You already have a village",
+  "findingLocation": "Finding location...",
+  "yourVillageLocation": "Your village location"
 }
