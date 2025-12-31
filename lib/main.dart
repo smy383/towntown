@@ -160,18 +160,36 @@ class DrawingStroke {
 /// 캐릭터 디자인 화면
 class CharacterDesignScreen extends StatefulWidget {
   final String characterName;
+  final List<DrawingStroke>? existingStrokes; // 수정 모드용
+  final bool isEditMode;
 
-  const CharacterDesignScreen({super.key, required this.characterName});
+  const CharacterDesignScreen({
+    super.key,
+    required this.characterName,
+    this.existingStrokes,
+    this.isEditMode = false,
+  });
 
   @override
   State<CharacterDesignScreen> createState() => _CharacterDesignScreenState();
 }
 
 class _CharacterDesignScreenState extends State<CharacterDesignScreen> {
-  final List<DrawingStroke> _strokes = [];
+  late List<DrawingStroke> _strokes;
   List<Offset> _currentStroke = [];
   Color _currentColor = Colors.black;
   double _strokeWidth = 3.0;
+
+  @override
+  void initState() {
+    super.initState();
+    // 수정 모드일 때 기존 그림 불러오기
+    if (widget.existingStrokes != null && widget.existingStrokes!.isNotEmpty) {
+      _strokes = List.from(widget.existingStrokes!);
+    } else {
+      _strokes = [];
+    }
+  }
 
   // 색상 팔레트
   final List<Color> _colors = [
@@ -377,26 +395,35 @@ class _CharacterDesignScreenState extends State<CharacterDesignScreen> {
 
           const SizedBox(height: 16),
 
-          // 마을로 가기 버튼
+          // 마을로 가기 / 저장 버튼
           Padding(
             padding: const EdgeInsets.only(bottom: 32),
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => VillageLand(
-                      characterName: widget.characterName,
-                      characterStrokes: _strokes,
+                if (widget.isEditMode) {
+                  // 수정 모드: strokes 반환
+                  Navigator.pop(context, _strokes);
+                } else {
+                  // 새로 만들기 모드: 마을로 이동
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => VillageLand(
+                        characterName: widget.characterName,
+                        characterStrokes: _strokes,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
               ),
-              child: const Text('마을로 가기', style: TextStyle(fontSize: 16)),
+              child: Text(
+                widget.isEditMode ? '저장하기' : '마을로 가기',
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
           ),
         ],
@@ -438,24 +465,59 @@ class DrawingCanvasPainter extends CustomPainter {
   void _drawStroke(Canvas canvas, List<Offset> points, Color color, double width) {
     if (points.isEmpty) return;
 
-    final paint = Paint()
+    // 네온 효과를 위한 Path 생성
+    final path = Path();
+    if (points.length == 1) {
+      // 점 하나인 경우 원으로 처리
+      _drawNeonCircle(canvas, points[0], width / 2, color);
+      return;
+    }
+
+    path.moveTo(points[0].dx, points[0].dy);
+    for (int i = 1; i < points.length; i++) {
+      path.lineTo(points[i].dx, points[i].dy);
+    }
+
+    // 검정색인 경우 글로우를 흰색으로
+    final isBlack = color.red < 30 && color.green < 30 && color.blue < 30;
+    final glowColor = isBlack ? Colors.white : color;
+
+    // 네온 글로우 효과 (바깥쪽 빛)
+    for (int i = 3; i >= 1; i--) {
+      final glowPaint = Paint()
+        ..color = glowColor.withOpacity(isBlack ? 0.3 : 0.4)
+        ..strokeWidth = width + (i * 8)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, i * 4.0);
+      canvas.drawPath(path, glowPaint);
+    }
+
+    // 코어 (원래 색상 유지)
+    final corePaint = Paint()
       ..color = color
       ..strokeWidth = width
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
+    canvas.drawPath(path, corePaint);
+  }
 
-    if (points.length == 1) {
-      // 점 하나만 찍은 경우
-      canvas.drawCircle(points[0], width / 2, paint..style = PaintingStyle.fill);
-    } else {
-      final path = Path();
-      path.moveTo(points[0].dx, points[0].dy);
-      for (int i = 1; i < points.length; i++) {
-        path.lineTo(points[i].dx, points[i].dy);
-      }
-      canvas.drawPath(path, paint);
+  void _drawNeonCircle(Canvas canvas, Offset center, double radius, Color color) {
+    final isBlack = color.red < 30 && color.green < 30 && color.blue < 30;
+    final glowColor = isBlack ? Colors.white : color;
+
+    // 글로우
+    for (int i = 3; i >= 1; i--) {
+      final glowPaint = Paint()
+        ..color = glowColor.withOpacity(isBlack ? 0.3 : 0.4)
+        ..style = PaintingStyle.fill
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, i * 4.0);
+      canvas.drawCircle(center, radius + (i * 4), glowPaint);
     }
+    // 코어 (원래 색상 유지)
+    canvas.drawCircle(center, radius, Paint()..color = color);
   }
 
   @override
@@ -471,14 +533,14 @@ class BodyCharacterPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
 
-    // 하얀색 실루엣
+    // 하얀색 실루엣 (90% 투명)
     final fillPaint = Paint()
-      ..color = Colors.white
+      ..color = Colors.white.withOpacity(0.1)
       ..style = PaintingStyle.fill;
 
-    // 회색 외곽선 (파츠 구분용)
+    // 회색 외곽선 (파츠 구분용, 약간 투명)
     final outlinePaint = Paint()
-      ..color = Colors.grey.shade600
+      ..color = Colors.grey.shade600.withOpacity(0.3)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
@@ -1377,23 +1439,56 @@ class CustomCharacterPainter extends CustomPainter {
   void _drawStroke(Canvas canvas, List<Offset> points, Color color, double width) {
     if (points.isEmpty) return;
 
-    final paint = Paint()
+    // 네온 효과를 위한 Path 생성
+    final path = Path();
+    if (points.length == 1) {
+      _drawNeonCircle(canvas, points[0], width / 2, color);
+      return;
+    }
+
+    path.moveTo(points[0].dx, points[0].dy);
+    for (int i = 1; i < points.length; i++) {
+      path.lineTo(points[i].dx, points[i].dy);
+    }
+
+    // 검정색인 경우 글로우를 흰색으로
+    final isBlack = color.red < 30 && color.green < 30 && color.blue < 30;
+    final glowColor = isBlack ? Colors.white : color;
+
+    // 네온 글로우 효과 (바깥쪽 빛)
+    for (int i = 3; i >= 1; i--) {
+      final glowPaint = Paint()
+        ..color = glowColor.withOpacity(isBlack ? 0.3 : 0.4)
+        ..strokeWidth = width + (i * 8)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, i * 4.0);
+      canvas.drawPath(path, glowPaint);
+    }
+
+    // 코어 (원래 색상 유지)
+    final corePaint = Paint()
       ..color = color
       ..strokeWidth = width
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
+    canvas.drawPath(path, corePaint);
+  }
 
-    if (points.length == 1) {
-      canvas.drawCircle(points[0], width / 2, paint..style = PaintingStyle.fill);
-    } else {
-      final path = Path();
-      path.moveTo(points[0].dx, points[0].dy);
-      for (int i = 1; i < points.length; i++) {
-        path.lineTo(points[i].dx, points[i].dy);
-      }
-      canvas.drawPath(path, paint);
+  void _drawNeonCircle(Canvas canvas, Offset center, double radius, Color color) {
+    final isBlack = color.red < 30 && color.green < 30 && color.blue < 30;
+    final glowColor = isBlack ? Colors.white : color;
+
+    for (int i = 3; i >= 1; i--) {
+      final glowPaint = Paint()
+        ..color = glowColor.withOpacity(isBlack ? 0.3 : 0.4)
+        ..style = PaintingStyle.fill
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, i * 4.0);
+      canvas.drawCircle(center, radius + (i * 4), glowPaint);
     }
+    canvas.drawCircle(center, radius, Paint()..color = color);
   }
 
   @override
@@ -1439,9 +1534,17 @@ class _VillageLandState extends State<VillageLand>
   bool _facingRight = true;
   bool _initialized = false;
 
+  // 캐릭터 수정 관련
+  bool _showEditButton = false;
+  late String _characterName;
+  late List<DrawingStroke> _characterStrokes;
+  DateTime? _lastNameChangeDate;
+
   @override
   void initState() {
     super.initState();
+    _characterName = widget.characterName;
+    _characterStrokes = List.from(widget.characterStrokes);
     _walkController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -1453,6 +1556,205 @@ class _VillageLandState extends State<VillageLand>
     _moveController?.dispose();
     _walkController.dispose();
     super.dispose();
+  }
+
+  // 캐릭터 탭 시 수정 버튼 표시
+  void _onCharacterTap() {
+    setState(() {
+      _showEditButton = !_showEditButton;
+    });
+  }
+
+  // 수정 버튼 숨기기
+  void _hideEditButton() {
+    if (_showEditButton) {
+      setState(() {
+        _showEditButton = false;
+      });
+    }
+  }
+
+  // 이름 변경 가능 여부 확인 (한달에 한번)
+  bool _canChangeName() {
+    if (_lastNameChangeDate == null) return true;
+    final difference = DateTime.now().difference(_lastNameChangeDate!);
+    return difference.inDays >= 30;
+  }
+
+  // 이름 변경까지 남은 일수
+  int _daysUntilNameChange() {
+    if (_lastNameChangeDate == null) return 0;
+    final difference = DateTime.now().difference(_lastNameChangeDate!);
+    final remaining = 30 - difference.inDays;
+    return remaining > 0 ? remaining : 0;
+  }
+
+  // 수정 옵션 다이얼로그
+  void _showEditOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey.shade900,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 드래그 핸들
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade600,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  '캐릭터 수정',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 외형 수정 버튼
+                ListTile(
+                  leading: const Icon(Icons.brush, color: Colors.blue),
+                  title: const Text('외형 수정', style: TextStyle(color: Colors.white)),
+                  subtitle: const Text('캐릭터를 다시 그립니다', style: TextStyle(color: Colors.white54)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _editCharacterAppearance();
+                  },
+                ),
+
+                // 이름 변경 버튼
+                ListTile(
+                  leading: Icon(
+                    Icons.edit,
+                    color: _canChangeName() ? Colors.green : Colors.grey,
+                  ),
+                  title: Text(
+                    '이름 변경',
+                    style: TextStyle(
+                      color: _canChangeName() ? Colors.white : Colors.grey,
+                    ),
+                  ),
+                  subtitle: Text(
+                    _canChangeName()
+                        ? '이름을 변경합니다 (월 1회)'
+                        : '${_daysUntilNameChange()}일 후 변경 가능',
+                    style: TextStyle(
+                      color: _canChangeName() ? Colors.white54 : Colors.grey.shade600,
+                    ),
+                  ),
+                  onTap: _canChangeName()
+                      ? () {
+                          Navigator.pop(context);
+                          _showNameChangeDialog();
+                        }
+                      : null,
+                ),
+
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // 외형 수정
+  void _editCharacterAppearance() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CharacterDesignScreen(
+          characterName: _characterName,
+          existingStrokes: _characterStrokes,
+          isEditMode: true,
+        ),
+      ),
+    );
+
+    // 결과가 있으면 캐릭터 업데이트
+    if (result != null && result is List<DrawingStroke>) {
+      setState(() {
+        _characterStrokes = result;
+        _showEditButton = false;
+      });
+    }
+  }
+
+  // 이름 변경 다이얼로그
+  void _showNameChangeDialog() {
+    final controller = TextEditingController(text: _characterName);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey.shade900,
+          title: const Text('이름 변경', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '새로운 이름을 입력하세요.\n(한달에 한번만 변경 가능)',
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: '새 이름',
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white24),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.blue),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newName = controller.text.trim();
+                if (newName.isNotEmpty && newName != _characterName) {
+                  setState(() {
+                    _characterName = newName;
+                    _lastNameChangeDate = DateTime.now();
+                    _showEditButton = false;
+                  });
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    const SnackBar(content: Text('이름이 변경되었습니다')),
+                  );
+                }
+              },
+              child: const Text('변경'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _moveCharacter(Offset target, {bool running = false}) {
@@ -1516,14 +1818,34 @@ class _VillageLandState extends State<VillageLand>
       _initialized = true;
     }
 
+    // 캐릭터 영역 (수정 버튼 포함)
+    final characterRect = Rect.fromLTWH(
+      _characterX - 10,
+      _characterY - (_showEditButton ? 40 : 0),
+      80,
+      130 + (_showEditButton ? 40 : 0),
+    );
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
         onTapDown: (details) {
-          _moveCharacter(details.localPosition, running: false);
+          final tapPos = details.localPosition;
+          // 캐릭터 영역 내 터치는 무시 (자식 위젯이 처리)
+          if (characterRect.contains(tapPos)) {
+            return;
+          }
+          _hideEditButton();
+          _moveCharacter(tapPos, running: false);
         },
         onLongPressStart: (details) {
-          _moveCharacter(details.localPosition, running: true);
+          final tapPos = details.localPosition;
+          // 캐릭터 영역 내 터치는 무시
+          if (characterRect.contains(tapPos)) {
+            return;
+          }
+          _hideEditButton();
+          _moveCharacter(tapPos, running: true);
         },
         child: Stack(
           children: [
@@ -1534,40 +1856,87 @@ class _VillageLandState extends State<VillageLand>
               top: _characterY,
               child: Column(
                 children: [
-                  Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.identity()
-                      ..scale(_facingRight ? 1.0 : -1.0, 1.0),
-                    child: AnimatedBuilder(
-                      animation: _walkController,
-                      builder: (context, child) {
-                        // 사용자가 그린 캐릭터가 있으면 항상 사용 (애니메이션 포함)
-                        if (widget.characterStrokes.isNotEmpty) {
+                  // 수정 버튼 (캐릭터 상단)
+                  if (_showEditButton)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: (_) {}, // 이벤트 흡수
+                      onTap: _showEditOptions,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blue.withOpacity(0.5),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.edit, color: Colors.white, size: 14),
+                            SizedBox(width: 4),
+                            Text(
+                              '수정',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  // 캐릭터
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapDown: (_) {}, // 이벤트 흡수
+                    onTap: () {
+                      // 캐릭터 탭 시 수정 버튼 토글 (이동 방지)
+                      _onCharacterTap();
+                    },
+                    child: Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..scale(_facingRight ? 1.0 : -1.0, 1.0),
+                      child: AnimatedBuilder(
+                        animation: _walkController,
+                        builder: (context, child) {
+                          // 사용자가 그린 캐릭터가 있으면 항상 사용 (애니메이션 포함)
+                          if (_characterStrokes.isNotEmpty) {
+                            return CustomPaint(
+                              size: const Size(60, 100),
+                              painter: CustomCharacterPainter(
+                                strokes: _characterStrokes,
+                                animationValue: _walkController.value,
+                                isMoving: _isMoving,
+                                isRunning: _isRunning,
+                              ),
+                            );
+                          }
+                          // 그림이 없으면 졸라맨
                           return CustomPaint(
                             size: const Size(60, 100),
-                            painter: CustomCharacterPainter(
-                              strokes: widget.characterStrokes,
+                            painter: StickmanPainter(
                               animationValue: _walkController.value,
                               isMoving: _isMoving,
                               isRunning: _isRunning,
                             ),
                           );
-                        }
-                        // 그림이 없으면 졸라맨
-                        return CustomPaint(
-                          size: const Size(60, 100),
-                          painter: StickmanPainter(
-                            animationValue: _walkController.value,
-                            isMoving: _isMoving,
-                            isRunning: _isRunning,
-                          ),
-                        );
-                      },
+                        },
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    widget.characterName,
+                    _characterName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
