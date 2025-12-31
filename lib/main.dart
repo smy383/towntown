@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'dart:math';
 
 void main() {
@@ -1539,6 +1540,11 @@ class _VillageLandState extends State<VillageLand>
   bool _facingRight = true;
   bool _initialized = false;
 
+  // 달리기 모드 (손가락 따라가기)
+  bool _isRunningMode = false;
+  Ticker? _runTicker;
+  Duration _lastTickTime = Duration.zero;
+
   // 화면 크기
   late Size _screenSize;
 
@@ -1597,6 +1603,7 @@ class _VillageLandState extends State<VillageLand>
     _walkController.dispose();
     _chatController.dispose();
     _chatFocusNode.dispose();
+    _runTicker?.dispose();
     super.dispose();
   }
 
@@ -1614,7 +1621,9 @@ class _VillageLandState extends State<VillageLand>
       _isSpeechBubblePinned = wasPinned;
     });
     _chatController.clear();
-    _chatFocusNode.unfocus();
+
+    // 포커스 유지 (엔터 키 전송 후에도 계속 입력 가능)
+    _chatFocusNode.requestFocus();
 
     // 고정 상태가 아닐 때만 5초 후 사라짐
     if (!wasPinned) {
@@ -1911,6 +1920,95 @@ class _VillageLandState extends State<VillageLand>
     _moveController!.forward();
   }
 
+  // 달리기 시작 (손가락 따라가기 모드)
+  void _startRunning(Offset screenTarget) {
+    // 기존 이동 애니메이션 취소
+    _moveController?.stop();
+
+    final worldTarget = _screenToWorld(screenTarget);
+    _targetWorldX = worldTarget.dx.clamp(30.0, worldWidth - 30.0);
+    _targetWorldY = worldTarget.dy.clamp(50.0, worldHeight - 50.0);
+
+    setState(() {
+      _isRunningMode = true;
+      _isMoving = true;
+      _isRunning = true;
+      _facingRight = _targetWorldX > _worldX;
+    });
+
+    _walkController.duration = const Duration(milliseconds: 250);
+    _walkController.repeat();
+
+    // Ticker 시작
+    _runTicker?.dispose();
+    _runTicker = createTicker(_onRunTick);
+    _lastTickTime = Duration.zero;
+    _runTicker!.start();
+  }
+
+  // 매 프레임 달리기 업데이트
+  void _onRunTick(Duration elapsed) {
+    final dt = (elapsed - _lastTickTime).inMilliseconds / 1000.0;
+    _lastTickTime = elapsed;
+
+    // 목표 방향으로 이동
+    final dx = _targetWorldX - _worldX;
+    final dy = _targetWorldY - _worldY;
+    final distance = sqrt(dx * dx + dy * dy);
+
+    if (distance < 10) {
+      // 목표에 가까우면 멈춤
+      return;
+    }
+
+    const speed = 400.0; // 달리기 속도 (픽셀/초)
+    final moveDistance = speed * dt;
+    final ratio = (moveDistance / distance).clamp(0.0, 1.0);
+
+    setState(() {
+      _worldX += dx * ratio;
+      _worldY += dy * ratio;
+
+      // 방향 전환
+      if (dx.abs() > 5) {
+        _facingRight = dx > 0;
+      }
+    });
+  }
+
+  // 달리기 목표 업데이트 (손가락 이동 시)
+  void _updateRunTarget(Offset screenTarget) {
+    if (!_isRunningMode) return;
+
+    final worldTarget = _screenToWorld(screenTarget);
+    _targetWorldX = worldTarget.dx.clamp(30.0, worldWidth - 30.0);
+    _targetWorldY = worldTarget.dy.clamp(50.0, worldHeight - 50.0);
+
+    // 방향 전환
+    final dx = _targetWorldX - _worldX;
+    if (dx.abs() > 5) {
+      setState(() {
+        _facingRight = dx > 0;
+      });
+    }
+  }
+
+  // 달리기 종료
+  void _stopRunning() {
+    _runTicker?.stop();
+    _runTicker?.dispose();
+    _runTicker = null;
+    _isRunningMode = false;
+
+    setState(() {
+      _isMoving = false;
+      _isRunning = false;
+    });
+
+    _walkController.stop();
+    _walkController.reset();
+  }
+
   @override
   Widget build(BuildContext context) {
     _screenSize = MediaQuery.of(context).size;
@@ -1950,6 +2048,10 @@ class _VillageLandState extends State<VillageLand>
             return;
           }
           _hideEditButton();
+          // 달리기 중이면 먼저 멈춤
+          if (_isRunningMode) {
+            _stopRunning();
+          }
           _moveCharacter(tapPos, running: false);
         },
         onLongPressStart: (details) {
@@ -1959,7 +2061,18 @@ class _VillageLandState extends State<VillageLand>
             return;
           }
           _hideEditButton();
-          _moveCharacter(tapPos, running: true);
+          _startRunning(tapPos);
+        },
+        onLongPressMoveUpdate: (details) {
+          final tapPos = details.localPosition;
+          // 채팅창 영역은 무시
+          if (chatInputRect.contains(tapPos)) {
+            return;
+          }
+          _updateRunTarget(tapPos);
+        },
+        onLongPressEnd: (details) {
+          _stopRunning();
         },
         child: Stack(
           children: [
