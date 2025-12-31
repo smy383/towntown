@@ -1517,22 +1517,30 @@ class VillageLand extends StatefulWidget {
 
 class _VillageLandState extends State<VillageLand>
     with TickerProviderStateMixin {
-  double _characterX = 0;
-  double _characterY = 0;
-  double _targetX = 0;
-  double _targetY = 0;
+  // 월드 크기 (화면보다 큼)
+  static const double worldWidth = 2000;
+  static const double worldHeight = 2000;
+
+  // 캐릭터의 월드 좌표
+  double _worldX = worldWidth / 2;
+  double _worldY = worldHeight / 2;
+  double _targetWorldX = 0;
+  double _targetWorldY = 0;
 
   AnimationController? _moveController;
   Animation<double>? _moveAnimation;
   late AnimationController _walkController;
 
-  double _startX = 0;
-  double _startY = 0;
+  double _startWorldX = 0;
+  double _startWorldY = 0;
 
   bool _isMoving = false;
   bool _isRunning = false;
   bool _facingRight = true;
   bool _initialized = false;
+
+  // 화면 크기
+  late Size _screenSize;
 
   // 캐릭터 수정 관련
   bool _showEditButton = false;
@@ -1549,6 +1557,31 @@ class _VillageLandState extends State<VillageLand>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
+  }
+
+  // 카메라 오프셋 계산 (월드 좌표 -> 화면 좌표 변환용)
+  Offset get _cameraOffset {
+    // 캐릭터를 화면 중앙에 두기 위한 카메라 위치
+    double cameraX = _worldX - _screenSize.width / 2;
+    double cameraY = _worldY - _screenSize.height / 2;
+
+    // 카메라가 월드 경계를 벗어나지 않도록 클램프
+    cameraX = cameraX.clamp(0, worldWidth - _screenSize.width);
+    cameraY = cameraY.clamp(0, worldHeight - _screenSize.height);
+
+    return Offset(cameraX, cameraY);
+  }
+
+  // 캐릭터의 화면 좌표
+  Offset get _characterScreenPos {
+    final camera = _cameraOffset;
+    return Offset(_worldX - camera.dx - 30, _worldY - camera.dy - 50);
+  }
+
+  // 화면 좌표 -> 월드 좌표 변환
+  Offset _screenToWorld(Offset screenPos) {
+    final camera = _cameraOffset;
+    return Offset(screenPos.dx + camera.dx, screenPos.dy + camera.dy);
   }
 
   @override
@@ -1757,20 +1790,27 @@ class _VillageLandState extends State<VillageLand>
     );
   }
 
-  void _moveCharacter(Offset target, {bool running = false}) {
+  void _moveCharacter(Offset screenTarget, {bool running = false}) {
+    // 화면 좌표를 월드 좌표로 변환
+    final worldTarget = _screenToWorld(screenTarget);
+
+    // 월드 경계 내로 제한
+    final clampedX = worldTarget.dx.clamp(30.0, worldWidth - 30.0);
+    final clampedY = worldTarget.dy.clamp(50.0, worldHeight - 50.0);
+
     setState(() {
       _isMoving = true;
       _isRunning = running;
-      _facingRight = target.dx > _characterX + 30;
+      _facingRight = clampedX > _worldX;
     });
 
-    _startX = _characterX;
-    _startY = _characterY;
-    _targetX = target.dx - 30;
-    _targetY = target.dy - 70;
+    _startWorldX = _worldX;
+    _startWorldY = _worldY;
+    _targetWorldX = clampedX;
+    _targetWorldY = clampedY;
 
     final distance = sqrt(
-      pow(_targetX - _startX, 2) + pow(_targetY - _startY, 2),
+      pow(_targetWorldX - _startWorldX, 2) + pow(_targetWorldY - _startWorldY, 2),
     );
 
     final speed = running ? 500.0 : 180.0;
@@ -1786,8 +1826,8 @@ class _VillageLandState extends State<VillageLand>
     _moveAnimation!.addListener(() {
       setState(() {
         final progress = _moveAnimation!.value;
-        _characterX = _startX + (_targetX - _startX) * progress;
-        _characterY = _startY + (_targetY - _startY) * progress;
+        _worldX = _startWorldX + (_targetWorldX - _startWorldX) * progress;
+        _worldY = _startWorldY + (_targetWorldY - _startWorldY) * progress;
       });
     });
 
@@ -1811,17 +1851,19 @@ class _VillageLandState extends State<VillageLand>
 
   @override
   Widget build(BuildContext context) {
+    _screenSize = MediaQuery.of(context).size;
+
     if (!_initialized) {
-      final size = MediaQuery.of(context).size;
-      _characterX = size.width / 2 - 30;
-      _characterY = size.height / 2 - 70;
       _initialized = true;
     }
 
+    final charScreenPos = _characterScreenPos;
+    final camera = _cameraOffset;
+
     // 캐릭터 영역 (수정 버튼 포함)
     final characterRect = Rect.fromLTWH(
-      _characterX - 10,
-      _characterY - (_showEditButton ? 40 : 0),
+      charScreenPos.dx - 10,
+      charScreenPos.dy - (_showEditButton ? 40 : 0),
       80,
       130 + (_showEditButton ? 40 : 0),
     );
@@ -1849,11 +1891,19 @@ class _VillageLandState extends State<VillageLand>
         },
         child: Stack(
           children: [
-            Container(color: Colors.black),
+            // 월드 배경 (그리드로 이동 확인용)
+            Positioned(
+              left: -camera.dx,
+              top: -camera.dy,
+              child: CustomPaint(
+                size: const Size(worldWidth, worldHeight),
+                painter: WorldGridPainter(),
+              ),
+            ),
 
             Positioned(
-              left: _characterX,
-              top: _characterY,
+              left: charScreenPos.dx,
+              top: charScreenPos.dy,
               child: Column(
                 children: [
                   // 수정 버튼 (캐릭터 상단)
@@ -1950,4 +2000,48 @@ class _VillageLandState extends State<VillageLand>
       ),
     );
   }
+}
+
+/// 월드 그리드 (이동 확인용)
+class WorldGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final gridPaint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    final majorGridPaint = Paint()
+      ..color = Colors.white.withOpacity(0.2)
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    const gridSize = 100.0;
+
+    // 그리드 라인 그리기
+    for (double x = 0; x <= size.width; x += gridSize) {
+      final paint = (x % 500 == 0) ? majorGridPaint : gridPaint;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y <= size.height; y += gridSize) {
+      final paint = (y % 500 == 0) ? majorGridPaint : gridPaint;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+
+    // 월드 경계선
+    final borderPaint = Paint()
+      ..color = Colors.red.withOpacity(0.5)
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke;
+    canvas.drawRect(Offset.zero & size, borderPaint);
+
+    // 중앙 마커
+    final centerPaint = Paint()
+      ..color = Colors.blue.withOpacity(0.3)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 20, centerPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
