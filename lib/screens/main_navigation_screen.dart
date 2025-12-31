@@ -36,17 +36,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   void initState() {
     super.initState();
     _flickerController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
     _flickerAnimation = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 0.8), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 0.8, end: 0.2), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 0.2, end: 1.0), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.3), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 0.3, end: 1.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 0.7), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 0.7, end: 0.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 2),
     ]).animate(_flickerController!);
+
+    _flickerController!.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -76,15 +80,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: _flickerAnimation != null
-            ? AnimatedBuilder(
-                animation: _flickerAnimation!,
-                builder: (context, child) {
-                  final opacity = _isAnimating ? _flickerAnimation!.value : 1.0;
-                  return _buildNeonLogo(opacity);
-                },
-              )
-            : _buildNeonLogo(1.0),
+        title: _buildNeonLogo(
+          _isAnimating && _flickerAnimation != null
+              ? _flickerAnimation!.value
+              : 1.0,
+        ),
         centerTitle: true,
         actions: _currentIndex == 2 ? _buildTownActions(context) : null,
       ),
