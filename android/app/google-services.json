@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "471086979502",
+    "project_id": "neontown",
+    "storage_bucket": "neontown.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:471086979502:android:67048b8ec462a470ead03f",
+        "android_client_info": {
+          "package_name": "com.neontown.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtJx3QnoTOVfOZO6eIi8y7MDZoH5heD5I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
