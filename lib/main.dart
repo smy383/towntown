@@ -189,7 +189,7 @@ class _CharacterDesignScreenState extends State<CharacterDesignScreen> {
 
   void _onPanStart(DragStartDetails details, Size canvasSize) {
     final localPos = _getLocalPosition(details.localPosition, canvasSize);
-    if (localPos != null) {
+    if (localPos != null && BodyPartRegions.isInsideSilhouette(localPos)) {
       setState(() {
         _currentStroke = [localPos];
       });
@@ -198,7 +198,7 @@ class _CharacterDesignScreenState extends State<CharacterDesignScreen> {
 
   void _onPanUpdate(DragUpdateDetails details, Size canvasSize) {
     final localPos = _getLocalPosition(details.localPosition, canvasSize);
-    if (localPos != null && _currentStroke.isNotEmpty) {
+    if (localPos != null && BodyPartRegions.isInsideSilhouette(localPos)) {
       setState(() {
         _currentStroke.add(localPos);
       });
@@ -328,31 +328,49 @@ class _CharacterDesignScreenState extends State<CharacterDesignScreen> {
           // 캔버스
           Expanded(
             child: Center(
-              child: GestureDetector(
-                onPanStart: (d) => _onPanStart(d, canvasSize),
-                onPanUpdate: (d) => _onPanUpdate(d, canvasSize),
-                onPanEnd: _onPanEnd,
-                child: Container(
-                  width: canvasSize.width,
-                  height: canvasSize.height,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade900,
-                    border: Border.all(color: Colors.white24),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: CustomPaint(
-                      size: canvasSize,
-                      painter: DrawingCanvasPainter(
-                        strokes: _strokes,
-                        currentStroke: _currentStroke,
-                        currentColor: _currentColor,
-                        currentStrokeWidth: _strokeWidth,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onPanStart: (d) => _onPanStart(d, canvasSize),
+                    onPanUpdate: (d) => _onPanUpdate(d, canvasSize),
+                    onPanEnd: _onPanEnd,
+                    child: Container(
+                      width: canvasSize.width,
+                      height: canvasSize.height,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade900,
+                        border: Border.all(color: Colors.white24),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: CustomPaint(
+                          size: canvasSize,
+                          painter: DrawingCanvasPainter(
+                            strokes: _strokes,
+                            currentStroke: _currentStroke,
+                            currentColor: _currentColor,
+                            currentStrokeWidth: _strokeWidth,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  // 움직임 방향 표시
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_forward, color: Colors.white54, size: 18),
+                      const SizedBox(width: 4),
+                      Text(
+                        '움직임 방향',
+                        style: TextStyle(color: Colors.white54, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -442,10 +460,8 @@ class DrawingCanvasPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant DrawingCanvasPainter oldDelegate) {
-    return oldDelegate.strokes != strokes ||
-        oldDelegate.currentStroke != currentStroke ||
-        oldDelegate.currentColor != currentColor ||
-        oldDelegate.currentStrokeWidth != currentStrokeWidth;
+    // 현재 그리는 중일 때는 항상 다시 그리기
+    return true;
   }
 }
 
@@ -958,73 +974,164 @@ class StickmanPainter extends CustomPainter {
 class BodyPartRegions {
   static const Size canvasSize = Size(250, 350);
 
-  // 각 부위의 중심점과 영역 (원본 BodyCharacterPainter 기준)
-  static Rect get head {
-    final cx = canvasSize.width / 2;
-    final headRadius = canvasSize.width * 0.20;
-    final headY = canvasSize.height * 0.13;
-    return Rect.fromCircle(center: Offset(cx, headY), radius: headRadius + 5);
+  // 실루엣 치수 계산
+  static double get cx => canvasSize.width / 2;
+  static double get headRadius => canvasSize.width * 0.20;
+  static double get headY => canvasSize.height * 0.13;
+  static double get neckTop => headY + headRadius;
+  static double get shoulderY => neckTop + canvasSize.height * 0.02;
+  static double get torsoHeight => canvasSize.height * 0.28;
+  static double get torsoWidth => canvasSize.width * 0.38;
+  static double get hipY => shoulderY + torsoHeight;
+  static double get shoulderWidth => canvasSize.width * 0.22;
+  static double get armWidth => canvasSize.width * 0.10;
+  static double get upperArmLength => canvasSize.height * 0.14;
+  static double get lowerArmLength => canvasSize.height * 0.13;
+  static double get hipWidth => canvasSize.width * 0.08;
+  static double get legWidth => canvasSize.width * 0.12;
+  static double get upperLegLength => canvasSize.height * 0.17;
+  static double get lowerLegLength => canvasSize.height * 0.16;
+
+  // 점이 실루엣 안에 있는지 확인
+  static bool isInsideSilhouette(Offset point) {
+    return _isInsideHead(point) ||
+           _isInsideTorso(point) ||
+           _isInsideLeftArm(point) ||
+           _isInsideRightArm(point) ||
+           _isInsideLeftLeg(point) ||
+           _isInsideRightLeg(point);
   }
 
-  static Rect get torso {
-    final cx = canvasSize.width / 2;
-    final headRadius = canvasSize.width * 0.20;
-    final headY = canvasSize.height * 0.13;
-    final neckTop = headY + headRadius;
-    final shoulderY = neckTop + canvasSize.height * 0.02;
-    final torsoHeight = canvasSize.height * 0.28;
-    final torsoWidth = canvasSize.width * 0.38;
-    return Rect.fromCenter(
+  // 머리 (원)
+  static bool _isInsideHead(Offset point) {
+    final center = Offset(cx, headY);
+    return (point - center).distance <= headRadius;
+  }
+
+  // 몸통 (둥근 사각형)
+  static bool _isInsideTorso(Offset point) {
+    final rect = Rect.fromCenter(
       center: Offset(cx, shoulderY + torsoHeight / 2),
-      width: torsoWidth + 10,
-      height: torsoHeight + 10,
+      width: torsoWidth,
+      height: torsoHeight,
     );
+    // 간단하게 사각형으로 체크 (둥근 모서리는 무시)
+    return rect.contains(point);
   }
 
-  static Rect get leftArm {
-    final cx = canvasSize.width / 2;
-    final shoulderWidth = canvasSize.width * 0.22;
-    return Rect.fromLTRB(0, torso.top - 10, cx - shoulderWidth + 30, torso.bottom + 40);
+  // 캡슐(둥근 끝 팔다리) 안에 있는지 체크
+  static bool _isInsideCapsule(Offset point, Offset start, Offset end, double width) {
+    final radius = width / 2;
+
+    // 시작점 원 안에 있는지
+    if ((point - start).distance <= radius) return true;
+    // 끝점 원 안에 있는지
+    if ((point - end).distance <= radius) return true;
+
+    // 선분과의 거리 체크
+    final dx = end.dx - start.dx;
+    final dy = end.dy - start.dy;
+    final lengthSq = dx * dx + dy * dy;
+    if (lengthSq == 0) return false;
+
+    // 점을 선분에 투영
+    var t = ((point.dx - start.dx) * dx + (point.dy - start.dy) * dy) / lengthSq;
+    t = t.clamp(0.0, 1.0);
+
+    final projX = start.dx + t * dx;
+    final projY = start.dy + t * dy;
+    final distance = (point - Offset(projX, projY)).distance;
+
+    return distance <= radius;
   }
 
-  static Rect get rightArm {
-    final cx = canvasSize.width / 2;
-    final shoulderWidth = canvasSize.width * 0.22;
-    return Rect.fromLTRB(cx + shoulderWidth - 30, torso.top - 10, canvasSize.width, torso.bottom + 40);
+  // 왼쪽 팔
+  static bool _isInsideLeftArm(Offset point) {
+    final leftShoulderX = cx - shoulderWidth;
+    final leftElbowX = leftShoulderX - upperArmLength * 0.3;
+    final leftElbowY = shoulderY + upperArmLength;
+    final leftHandX = leftElbowX - lowerArmLength * 0.15;
+    final leftHandY = leftElbowY + lowerArmLength;
+
+    final shoulderPos = Offset(leftShoulderX, shoulderY + 8);
+    final elbowPos = Offset(leftElbowX, leftElbowY);
+    final handPos = Offset(leftHandX, leftHandY);
+
+    return _isInsideCapsule(point, shoulderPos, elbowPos, armWidth) ||
+           _isInsideCapsule(point, elbowPos, handPos, armWidth * 0.85);
   }
 
-  static Rect get leftLeg {
-    final cx = canvasSize.width / 2;
-    return Rect.fromLTRB(0, torso.bottom - 20, cx, canvasSize.height);
+  // 오른쪽 팔
+  static bool _isInsideRightArm(Offset point) {
+    final rightShoulderX = cx + shoulderWidth;
+    final rightElbowX = rightShoulderX + upperArmLength * 0.3;
+    final rightElbowY = shoulderY + upperArmLength;
+    final rightHandX = rightElbowX + lowerArmLength * 0.15;
+    final rightHandY = rightElbowY + lowerArmLength;
+
+    final shoulderPos = Offset(rightShoulderX, shoulderY + 8);
+    final elbowPos = Offset(rightElbowX, rightElbowY);
+    final handPos = Offset(rightHandX, rightHandY);
+
+    return _isInsideCapsule(point, shoulderPos, elbowPos, armWidth) ||
+           _isInsideCapsule(point, elbowPos, handPos, armWidth * 0.85);
   }
 
-  static Rect get rightLeg {
-    final cx = canvasSize.width / 2;
-    return Rect.fromLTRB(cx, torso.bottom - 20, canvasSize.width, canvasSize.height);
+  // 왼쪽 다리
+  static bool _isInsideLeftLeg(Offset point) {
+    final leftLegX = cx - hipWidth;
+    final leftKneeY = hipY + upperLegLength;
+    final leftFootY = leftKneeY + lowerLegLength;
+
+    final hipPos = Offset(leftLegX, hipY);
+    final kneePos = Offset(leftLegX - 2, leftKneeY);
+    final footPos = Offset(leftLegX - 2, leftFootY);
+
+    return _isInsideCapsule(point, hipPos, kneePos, legWidth) ||
+           _isInsideCapsule(point, kneePos, footPos, legWidth * 0.85);
   }
+
+  // 오른쪽 다리
+  static bool _isInsideRightLeg(Offset point) {
+    final rightLegX = cx + hipWidth;
+    final rightKneeY = hipY + upperLegLength;
+    final rightFootY = rightKneeY + lowerLegLength;
+
+    final hipPos = Offset(rightLegX, hipY);
+    final kneePos = Offset(rightLegX + 2, rightKneeY);
+    final footPos = Offset(rightLegX + 2, rightFootY);
+
+    return _isInsideCapsule(point, hipPos, kneePos, legWidth) ||
+           _isInsideCapsule(point, kneePos, footPos, legWidth * 0.85);
+  }
+
+  // 각 부위의 바운딩 박스 (애니메이션용)
+  static Rect get head => Rect.fromCircle(center: Offset(cx, headY), radius: headRadius + 5);
+
+  static Rect get torso => Rect.fromCenter(
+    center: Offset(cx, shoulderY + torsoHeight / 2),
+    width: torsoWidth + 10,
+    height: torsoHeight + 10,
+  );
+
+  static Rect get leftArm => Rect.fromLTRB(0, torso.top - 10, cx - shoulderWidth + 30, torso.bottom + 40);
+  static Rect get rightArm => Rect.fromLTRB(cx + shoulderWidth - 30, torso.top - 10, canvasSize.width, torso.bottom + 40);
+  static Rect get leftLeg => Rect.fromLTRB(0, torso.bottom - 20, cx, canvasSize.height);
+  static Rect get rightLeg => Rect.fromLTRB(cx, torso.bottom - 20, canvasSize.width, canvasSize.height);
 
   // 점이 어느 부위에 속하는지 판단
-  static String getBodyPart(Offset point) {
-    if (head.contains(point)) return 'head';
-    if (leftArm.contains(point)) return 'leftArm';
-    if (rightArm.contains(point)) return 'rightArm';
-    if (torso.contains(point)) return 'torso';
-    if (leftLeg.contains(point)) return 'leftLeg';
-    if (rightLeg.contains(point)) return 'rightLeg';
-    return 'torso'; // 기본값
+  static String? getBodyPart(Offset point) {
+    if (_isInsideHead(point)) return 'head';
+    if (_isInsideLeftArm(point)) return 'leftArm';
+    if (_isInsideRightArm(point)) return 'rightArm';
+    if (_isInsideTorso(point)) return 'torso';
+    if (_isInsideLeftLeg(point)) return 'leftLeg';
+    if (_isInsideRightLeg(point)) return 'rightLeg';
+    return null; // 실루엣 밖
   }
 
   // 각 부위의 피벗 포인트 (회전 중심)
   static Offset getPivot(String part) {
-    final cx = canvasSize.width / 2;
-    final headRadius = canvasSize.width * 0.20;
-    final headY = canvasSize.height * 0.13;
-    final neckTop = headY + headRadius;
-    final shoulderY = neckTop + canvasSize.height * 0.02;
-    final shoulderWidth = canvasSize.width * 0.22;
-    final torsoHeight = canvasSize.height * 0.28;
-    final hipY = shoulderY + torsoHeight;
-
     switch (part) {
       case 'head':
         return Offset(cx, headY + headRadius); // 목 위치
@@ -1033,9 +1140,9 @@ class BodyPartRegions {
       case 'rightArm':
         return Offset(cx + shoulderWidth, shoulderY + 8); // 오른쪽 어깨
       case 'leftLeg':
-        return Offset(cx - canvasSize.width * 0.08, hipY); // 왼쪽 골반
+        return Offset(cx - hipWidth, hipY); // 왼쪽 골반
       case 'rightLeg':
-        return Offset(cx + canvasSize.width * 0.08, hipY); // 오른쪽 골반
+        return Offset(cx + hipWidth, hipY); // 오른쪽 골반
       default:
         return Offset(cx, shoulderY + torsoHeight / 2); // 몸통 중심
     }
@@ -1134,14 +1241,14 @@ class CustomCharacterPainter extends CustomPainter {
     canvas.translate(-pivot.dx, -pivot.dy - translateY);
     canvas.translate(0, translateY);
 
-    // 해당 부위의 실루엣 그리기
-    _drawSilhouettePart(canvas, part);
+    // 실루엣은 그리지 않음 - 사용자 그림만 표시
 
     // 해당 부위에 속하는 스트로크 그리기
     for (final stroke in strokes) {
       final partPoints = <Offset>[];
       for (final point in stroke.points) {
-        if (BodyPartRegions.getBodyPart(point) == part) {
+        final bodyPart = BodyPartRegions.getBodyPart(point);
+        if (bodyPart == part) {
           partPoints.add(point);
         }
       }
