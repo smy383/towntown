@@ -199,12 +199,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     return [
       IconButton(
         icon: Icon(
-          Icons.home,
-          color: Colors.orange,
+          Icons.home_outlined,
+          color: Colors.redAccent,
           shadows: [
             Shadow(
-              color: Colors.orange.withOpacity(0.6),
+              color: Colors.redAccent.withOpacity(0.8),
               blurRadius: 8,
+            ),
+            Shadow(
+              color: Colors.redAccent.withOpacity(0.5),
+              blurRadius: 16,
             ),
           ],
         ),
@@ -216,12 +220,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       ),
       IconButton(
         icon: Icon(
-          Icons.add_circle,
-          color: Colors.blue,
+          Icons.add,
+          color: Colors.greenAccent,
           shadows: [
             Shadow(
-              color: Colors.blue.withOpacity(0.6),
+              color: Colors.greenAccent.withOpacity(0.8),
               blurRadius: 8,
+            ),
+            Shadow(
+              color: Colors.greenAccent.withOpacity(0.5),
+              blurRadius: 16,
             ),
           ],
         ),
