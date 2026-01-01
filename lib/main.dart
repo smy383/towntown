@@ -13,6 +13,8 @@ import 'providers/locale_provider.dart';
 import 'screens/auth_screen.dart';
 import 'screens/main_navigation_screen.dart';
 import 'services/village_service.dart';
+import 'services/player_service.dart';
+import 'dart:async';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -1665,6 +1667,14 @@ class _VillageLandState extends State<VillageLand>
   static const double worldHeight = 2000;
 
   final VillageService _villageService = VillageService();
+  final PlayerService _playerService = PlayerService();
+
+  // 멀티플레이어 관련
+  StreamSubscription<List<PlayerState>>? _playersSubscription;
+  List<PlayerState> _otherPlayers = [];
+  Timer? _positionUpdateTimer;
+  Timer? _heartbeatTimer;
+  String? _myUid;
 
   // 캐릭터의 월드 좌표
   double _worldX = worldWidth / 2;
@@ -1714,6 +1724,73 @@ class _VillageLandState extends State<VillageLand>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
+
+    // 멀티플레이어 초기화
+    _initMultiplayer();
+  }
+
+  /// 멀티플레이어 시스템 초기화
+  Future<void> _initMultiplayer() async {
+    final villageId = widget.villageId;
+    if (villageId == null) return;
+
+    final authProvider = context.read<AuthProvider>();
+    _myUid = authProvider.user?.uid;
+    if (_myUid == null) return;
+
+    // 캐릭터 스트로크를 Map으로 변환
+    final strokesData = _characterStrokes.map((stroke) => {
+      'points': stroke.points.map((p) => {'x': p.dx, 'y': p.dy}).toList(),
+      'color': stroke.color.value,
+      'strokeWidth': stroke.strokeWidth,
+    }).toList();
+
+    // 마을에 입장
+    await _playerService.enterVillage(
+      villageId: villageId,
+      uid: _myUid!,
+      characterName: _characterName,
+      characterStrokes: strokesData,
+      initialX: _worldX,
+      initialY: _worldY,
+    );
+
+    // 다른 플레이어 구독
+    _playersSubscription = _playerService.playersStream(villageId).listen((players) {
+      if (mounted) {
+        setState(() {
+          _otherPlayers = players.where((p) => p.uid != _myUid).toList();
+        });
+      }
+    });
+
+    // 위치 업데이트 타이머 (100ms 간격)
+    _positionUpdateTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+      _syncPositionToFirestore();
+    });
+
+    // Heartbeat 타이머 (10초 간격)
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (villageId != null && _myUid != null) {
+        _playerService.heartbeat(villageId: villageId, uid: _myUid!);
+      }
+    });
+  }
+
+  /// 내 위치를 Firestore에 동기화
+  Future<void> _syncPositionToFirestore() async {
+    final villageId = widget.villageId;
+    if (villageId == null || _myUid == null) return;
+
+    await _playerService.updatePosition(
+      villageId: villageId,
+      uid: _myUid!,
+      x: _worldX,
+      y: _worldY,
+      facingRight: _facingRight,
+      isMoving: _isMoving,
+      isRunning: _isRunning,
+    );
   }
 
   // 카메라 오프셋 계산 (월드 좌표 -> 화면 좌표 변환용)
@@ -1743,6 +1820,11 @@ class _VillageLandState extends State<VillageLand>
 
   @override
   void dispose() {
+    // 멀티플레이어 정리
+    _playersSubscription?.cancel();
+    _positionUpdateTimer?.cancel();
+    _heartbeatTimer?.cancel();
+
     _moveController?.dispose();
     _walkController.dispose();
     _chatController.dispose();
@@ -1760,6 +1842,13 @@ class _VillageLandState extends State<VillageLand>
     final userId = authProvider.user?.uid;
     if (userId == null) return;
 
+    // 플레이어 상태 삭제
+    await _playerService.leaveVillage(
+      villageId: villageId,
+      uid: userId,
+    );
+
+    // 마을 인원 감소
     await _villageService.leaveVillage(
       villageId: villageId,
       userId: userId,
@@ -1787,6 +1876,9 @@ class _VillageLandState extends State<VillageLand>
     });
     _chatController.clear();
 
+    // Firestore에 채팅 동기화
+    _syncChatToFirestore(text);
+
     // 포커스 유지 (엔터 키 전송 후에도 계속 입력 가능)
     _chatFocusNode.requestFocus();
 
@@ -1794,6 +1886,29 @@ class _VillageLandState extends State<VillageLand>
     if (!wasPinned) {
       _scheduleHideBubble();
     }
+  }
+
+  /// 채팅을 Firestore에 동기화
+  Future<void> _syncChatToFirestore(String message) async {
+    final villageId = widget.villageId;
+    if (villageId == null || _myUid == null) return;
+
+    await _playerService.sendChat(
+      villageId: villageId,
+      uid: _myUid!,
+      message: message,
+    );
+  }
+
+  /// 채팅 삭제를 Firestore에 동기화
+  Future<void> _clearChatFromFirestore() async {
+    final villageId = widget.villageId;
+    if (villageId == null || _myUid == null) return;
+
+    await _playerService.clearChat(
+      villageId: villageId,
+      uid: _myUid!,
+    );
   }
 
   // 말풍선 자동 숨김 예약
@@ -1809,6 +1924,9 @@ class _VillageLandState extends State<VillageLand>
         _speechBubbleText = null;
         _speechBubbleTime = null;
       });
+
+      // Firestore에서도 삭제
+      _clearChatFromFirestore();
     });
   }
 
@@ -2174,6 +2292,104 @@ class _VillageLandState extends State<VillageLand>
     _walkController.reset();
   }
 
+  /// 다른 플레이어 위젯 빌드
+  Widget _buildOtherPlayer(PlayerState player, Offset camera) {
+    // 플레이어의 화면 좌표 계산
+    final screenX = player.x - camera.dx - 30;
+    final screenY = player.y - camera.dy - 50;
+
+    // 캐릭터 스트로크 변환
+    final strokes = player.characterStrokes.map((strokeData) {
+      final pointsData = strokeData['points'] as List<dynamic>? ?? [];
+      final points = pointsData.map((p) => Offset(
+        (p['x'] as num).toDouble(),
+        (p['y'] as num).toDouble(),
+      )).toList();
+
+      return DrawingStroke(
+        points: points,
+        color: Color(strokeData['color'] as int? ?? 0xFF000000),
+        strokeWidth: (strokeData['strokeWidth'] as num?)?.toDouble() ?? 3.0,
+      );
+    }).toList();
+
+    return Positioned(
+      left: screenX,
+      top: screenY,
+      child: Column(
+        children: [
+          // 다른 플레이어 캐릭터
+          Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..scale(player.facingRight ? 1.0 : -1.0, 1.0),
+            child: strokes.isNotEmpty
+                ? CustomPaint(
+                    size: const Size(60, 100),
+                    painter: CustomCharacterPainter(
+                      strokes: strokes,
+                      animationValue: 0,
+                      isMoving: player.isMoving,
+                      isRunning: player.isRunning,
+                    ),
+                  )
+                : CustomPaint(
+                    size: const Size(60, 100),
+                    painter: StickmanPainter(
+                      animationValue: 0,
+                      isMoving: player.isMoving,
+                      isRunning: player.isRunning,
+                    ),
+                  ),
+          ),
+          // 이름
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              player.characterName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          // 말풍선 (있으면)
+          if (player.chatMessage != null && player.chatMessage!.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              constraints: const BoxConstraints(maxWidth: 150),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                player.chatMessage!,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     _screenSize = MediaQuery.of(context).size;
@@ -2260,7 +2476,10 @@ class _VillageLandState extends State<VillageLand>
               ),
             ),
 
-            // 캐릭터 + 이름
+            // 다른 플레이어들
+            ..._otherPlayers.map((player) => _buildOtherPlayer(player, camera)),
+
+            // 내 캐릭터 + 이름
             Positioned(
               left: charScreenPos.dx,
               top: charScreenPos.dy,
