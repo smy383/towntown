@@ -44,5 +44,9 @@
   "villageLocation": "場所",
   "villageAlreadyExists": "すでに村を持っています",
   "findingLocation": "場所を探しています...",
-  "yourVillageLocation": "あなたの村の場所"
+  "yourVillageLocation": "あなたの村の場所",
+  "allVillages": "すべての村",
+  "population": "人口",
+  "noVillageYet": "まだ村がありません",
+  "createFirstVillage": "最初の村を作りましょう!"
 }

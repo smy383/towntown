@@ -142,4 +142,16 @@ class L10nKo extends L10n {
 
   @override
   String get yourVillageLocation => '당신의 마을 위치';
+
+  @override
+  String get allVillages => '모든 마을';
+
+  @override
+  String get population => '인구';
+
+  @override
+  String get noVillageYet => '아직 마을이 없습니다';
+
+  @override
+  String get createFirstVillage => '첫 번째 마을을 만들어보세요!';
 }

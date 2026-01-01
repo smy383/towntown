@@ -5,6 +5,7 @@ import 'search_screen.dart';
 import 'town_screen.dart';
 import 'settings_screen.dart';
 import 'create_village_screen.dart';
+import 'my_village_screen.dart';
 import '../providers/auth_provider.dart';
 import '../services/village_service.dart';
 import '../l10n/app_localizations.dart';
@@ -232,7 +233,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     return [
       IconButton(
         icon: Icon(
-          Icons.home_outlined,
+          Icons.home,
           color: Colors.redAccent,
           shadows: [
             Shadow(
@@ -246,8 +247,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
           ],
         ),
         onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('준비중...')),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MyVillageScreen(),
+            ),
           );
         },
       ),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
-import '../providers/auth_provider.dart';
 import '../services/village_service.dart';
 import '../models/village_model.dart';
 
@@ -14,36 +12,33 @@ class TownScreen extends StatefulWidget {
 
 class _TownScreenState extends State<TownScreen> {
   final VillageService _villageService = VillageService();
-  VillageModel? _myVillage;
+  List<VillageModel> _villages = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadMyVillage();
+    _loadVillages();
   }
 
-  Future<void> _loadMyVillage() async {
-    final authProvider = context.read<AuthProvider>();
-    final userId = authProvider.user?.uid;
-
-    if (userId != null) {
-      try {
-        final village = await _villageService.getUserVillage(userId);
-        if (mounted) {
-          setState(() {
-            _myVillage = village;
-            _isLoading = false;
-          });
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+  Future<void> _loadVillages() async {
+    try {
+      final villages = await _villageService.getAllVillages();
+      if (mounted) {
+        setState(() {
+          _villages = villages;
+          _isLoading = false;
+        });
       }
-    } else {
-      setState(() => _isLoading = false);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
+  }
+
+  Future<void> _refreshVillages() async {
+    await _loadVillages();
   }
 
   @override
@@ -59,306 +54,208 @@ class _TownScreenState extends State<TownScreen> {
       );
     }
 
+    if (_villages.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.grey[900],
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: Icon(
+                  Icons.location_city_outlined,
+                  size: 48,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                l10n.noVillageYet,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.createFirstVillage,
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
-      body: _myVillage != null
-          ? _buildMyVillageView(l10n)
-          : _buildEmptyView(l10n),
-    );
-  }
-
-  Widget _buildMyVillageView(L10n l10n) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 내 마을 카드
-          _MyVillageCard(village: _myVillage!),
-
-          const SizedBox(height: 24),
-
-          // 마을 정보 섹션
-          Text(
-            l10n.villageLocation,
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.purpleAccent.withOpacity(0.3),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.location_on,
-                  color: Colors.purpleAccent,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _myVillage!.sectorId,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // 다른 마을 탐험 섹션
-          Text(
-            l10n.exploreVillage,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.exploreVillageDesc,
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 탐험 버튼
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
+      body: RefreshIndicator(
+        onRefresh: _refreshVillages,
+        color: Colors.purpleAccent,
+        backgroundColor: Colors.grey[900],
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: _villages.length,
+          itemBuilder: (context, index) {
+            return _VillageCard(
+              village: _villages[index],
+              onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(l10n.comingSoon)),
                 );
               },
-              icon: const Icon(Icons.explore),
-              label: Text(l10n.exploreVillage),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.cyanAccent,
-                side: BorderSide(color: Colors.cyanAccent.withOpacity(0.5)),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyView(L10n l10n) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: Icon(
-              Icons.location_city_outlined,
-              size: 48,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            l10n.townEmpty,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.townEmptyDesc,
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 14,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-class _MyVillageCard extends StatelessWidget {
+class _VillageCard extends StatelessWidget {
   final VillageModel village;
+  final VoidCallback onTap;
 
-  const _MyVillageCard({required this.village});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.purpleAccent.withOpacity(0.2),
-            Colors.cyanAccent.withOpacity(0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.purpleAccent.withOpacity(0.5),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.purpleAccent.withOpacity(0.2),
-            blurRadius: 20,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.purpleAccent.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: Colors.purpleAccent.withOpacity(0.5),
-                  ),
-                ),
-                child: Icon(
-                  Icons.location_city,
-                  color: Colors.purpleAccent,
-                  size: 30,
-                  shadows: [
-                    Shadow(
-                      color: Colors.purpleAccent.withOpacity(0.8),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      village.name,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            color: Colors.purpleAccent.withOpacity(0.5),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'ID: ${village.id}',
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _InfoChip(
-                icon: Icons.people,
-                label: '${village.population}',
-                color: Colors.cyanAccent,
-              ),
-              const SizedBox(width: 12),
-              _InfoChip(
-                icon: Icons.calendar_today,
-                label: _formatDate(village.createdAt),
-                color: Colors.greenAccent,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-    required this.color,
+  const _VillageCard({
+    required this.village,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: Colors.purpleAccent.withOpacity(0.3),
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // 마을 아이콘
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.purpleAccent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.location_city,
+                    color: Colors.purpleAccent,
+                    size: 24,
+                    shadows: [
+                      Shadow(
+                        color: Colors.purpleAccent.withOpacity(0.6),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 14),
+
+                // 마을 정보
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        village.name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 12,
+                            color: Colors.grey[500],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            village.sectorId,
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // 인구수
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.cyanAccent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.cyanAccent.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.people,
+                        size: 14,
+                        color: Colors.cyanAccent,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${village.population}',
+                        style: const TextStyle(
+                          color: Colors.cyanAccent,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // 화살표
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey[600],
+                  size: 20,
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

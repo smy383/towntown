@@ -142,4 +142,16 @@ class L10nEn extends L10n {
 
   @override
   String get yourVillageLocation => 'Your village location';
+
+  @override
+  String get allVillages => 'All Villages';
+
+  @override
+  String get population => 'Population';
+
+  @override
+  String get noVillageYet => 'No villages yet';
+
+  @override
+  String get createFirstVillage => 'Create the first village!';
 }

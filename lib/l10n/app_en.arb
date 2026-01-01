@@ -44,5 +44,9 @@
   "villageLocation": "Location",
   "villageAlreadyExists": "You already have a village",
   "findingLocation": "Finding location...",
-  "yourVillageLocation": "Your village location"
+  "yourVillageLocation": "Your village location",
+  "allVillages": "All Villages",
+  "population": "Population",
+  "noVillageYet": "No villages yet",
+  "createFirstVillage": "Create the first village!"
 }

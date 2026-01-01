@@ -142,4 +142,16 @@ class L10nJa extends L10n {
 
   @override
   String get yourVillageLocation => 'あなたの村の場所';
+
+  @override
+  String get allVillages => 'すべての村';
+
+  @override
+  String get population => '人口';
+
+  @override
+  String get noVillageYet => 'まだ村がありません';
+
+  @override
+  String get createFirstVillage => '最初の村を作りましょう!';
 }

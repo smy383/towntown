@@ -44,5 +44,9 @@
   "villageLocation": "위치",
   "villageAlreadyExists": "이미 마을을 보유하고 있습니다",
   "findingLocation": "위치를 찾고 있습니다...",
-  "yourVillageLocation": "당신의 마을 위치"
+  "yourVillageLocation": "당신의 마을 위치",
+  "allVillages": "모든 마을",
+  "population": "인구",
+  "noVillageYet": "아직 마을이 없습니다",
+  "createFirstVillage": "첫 번째 마을을 만들어보세요!"
 }

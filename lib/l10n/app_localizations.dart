@@ -368,6 +368,30 @@ abstract class L10n {
   /// In ko, this message translates to:
   /// **'당신의 마을 위치'**
   String get yourVillageLocation;
+
+  /// No description provided for @allVillages.
+  ///
+  /// In ko, this message translates to:
+  /// **'모든 마을'**
+  String get allVillages;
+
+  /// No description provided for @population.
+  ///
+  /// In ko, this message translates to:
+  /// **'인구'**
+  String get population;
+
+  /// No description provided for @noVillageYet.
+  ///
+  /// In ko, this message translates to:
+  /// **'아직 마을이 없습니다'**
+  String get noVillageYet;
+
+  /// No description provided for @createFirstVillage.
+  ///
+  /// In ko, this message translates to:
+  /// **'첫 번째 마을을 만들어보세요!'**
+  String get createFirstVillage;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {
