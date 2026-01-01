@@ -1699,6 +1699,7 @@ class _VillageLandState extends State<VillageLand>
   bool _isRunningMode = false;
   Ticker? _runTicker;
   Duration _lastTickTime = Duration.zero;
+  Offset _targetScreenPos = Offset.zero; // 터치한 화면 좌표
 
   // 화면 크기
   late Size _screenSize;
@@ -2209,15 +2210,18 @@ class _VillageLandState extends State<VillageLand>
     // 기존 이동 애니메이션 취소
     _moveController?.stop();
 
-    final worldTarget = _screenToWorld(screenTarget);
-    _targetWorldX = worldTarget.dx.clamp(30.0, worldWidth - 30.0);
-    _targetWorldY = worldTarget.dy.clamp(50.0, worldHeight - 50.0);
+    // 화면 좌표 저장
+    _targetScreenPos = screenTarget;
+
+    // 캐릭터 화면 위치 (화면 중앙 근처)
+    final charScreenX = _screenSize.width / 2;
+    final dx = screenTarget.dx - charScreenX;
 
     setState(() {
       _isRunningMode = true;
       _isMoving = true;
       _isRunning = true;
-      _facingRight = _targetWorldX > _worldX;
+      _facingRight = dx > 0;
     });
 
     _walkController.duration = const Duration(milliseconds: 250);
@@ -2235,13 +2239,16 @@ class _VillageLandState extends State<VillageLand>
     final dt = (elapsed - _lastTickTime).inMilliseconds / 1000.0;
     _lastTickTime = elapsed;
 
-    // 목표 방향으로 이동
-    final dx = _targetWorldX - _worldX;
-    final dy = _targetWorldY - _worldY;
+    // 화면 중앙(캐릭터 위치)에서 터치 포인트 방향으로 계속 달리기
+    final charScreenX = _screenSize.width / 2;
+    final charScreenY = _screenSize.height / 2;
+
+    final dx = _targetScreenPos.dx - charScreenX;
+    final dy = _targetScreenPos.dy - charScreenY;
     final distance = sqrt(dx * dx + dy * dy);
 
-    if (distance < 10) {
-      // 목표에 가까우면 이동 멈춤 (달리기 모드는 유지)
+    // 터치가 캐릭터 너무 가까우면 멈춤 (데드존)
+    if (distance < 30) {
       if (_isMoving) {
         setState(() {
           _isMoving = false;
@@ -2252,7 +2259,7 @@ class _VillageLandState extends State<VillageLand>
       return;
     }
 
-    // 다시 움직이기 시작할 때 애니메이션 재개
+    // 움직이기 시작
     if (!_isMoving) {
       setState(() {
         _isMoving = true;
@@ -2263,11 +2270,18 @@ class _VillageLandState extends State<VillageLand>
 
     const speed = 400.0; // 달리기 속도 (픽셀/초)
     final moveDistance = speed * dt;
-    final ratio = (moveDistance / distance).clamp(0.0, 1.0);
+
+    // 정규화된 방향 벡터
+    final dirX = dx / distance;
+    final dirY = dy / distance;
+
+    // 새 월드 좌표 계산
+    final newWorldX = (_worldX + dirX * moveDistance).clamp(30.0, worldWidth - 30.0);
+    final newWorldY = (_worldY + dirY * moveDistance).clamp(50.0, worldHeight - 50.0);
 
     setState(() {
-      _worldX += dx * ratio;
-      _worldY += dy * ratio;
+      _worldX = newWorldX;
+      _worldY = newWorldY;
 
       // 방향 전환
       if (dx.abs() > 5) {
@@ -2280,12 +2294,12 @@ class _VillageLandState extends State<VillageLand>
   void _updateRunTarget(Offset screenTarget) {
     if (!_isRunningMode) return;
 
-    final worldTarget = _screenToWorld(screenTarget);
-    _targetWorldX = worldTarget.dx.clamp(30.0, worldWidth - 30.0);
-    _targetWorldY = worldTarget.dy.clamp(50.0, worldHeight - 50.0);
+    // 화면 좌표 업데이트
+    _targetScreenPos = screenTarget;
 
     // 방향 전환
-    final dx = _targetWorldX - _worldX;
+    final charScreenX = _screenSize.width / 2;
+    final dx = screenTarget.dx - charScreenX;
     if (dx.abs() > 5) {
       setState(() {
         _facingRight = dx > 0;
