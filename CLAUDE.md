@@ -162,7 +162,7 @@ lib/
 
 ## Current Implementation Status
 
-**현재 버전: 1.0.6**
+**현재 버전: 1.0.7**
 
 ### Completed
 - [x] Firebase 프로젝트 설정 (neontown)
@@ -190,12 +190,16 @@ lib/
 - [x] 주민 초대 기능 (MembershipInvitation: 이장이 사용자 초대)
 - [x] 주민 관리 화면 (MembershipManagementScreen)
 - [x] 초대 관리 화면 (InvitationsScreen)
+- [x] 캐릭터 터치 시 수정 버튼 표시 (GestureDetector 순서 수정)
+- [x] 달리기 모드 개선 (터치 방향으로 계속 달리기, 화면 좌표 기반)
 
 ### In Progress
 - [ ] Apple 로그인 설정 (Apple Developer 설정 필요)
 - [ ] Kakao 로그인 설정 (Kakao Developers 설정 필요)
 
-### Pending
+### Pending (Next Steps)
+- [ ] 마을 꾸미기 기능 (가구/오브젝트 배치)
+- [ ] SNS 연동 (피드 + 마을 꾸미기 결합)
 - [ ] 피드 기능 (게시글 작성/조회)
 - [ ] 프로필/내 정보 화면
 
