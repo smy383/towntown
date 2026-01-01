@@ -2241,8 +2241,24 @@ class _VillageLandState extends State<VillageLand>
     final distance = sqrt(dx * dx + dy * dy);
 
     if (distance < 10) {
-      // 목표에 가까우면 멈춤
+      // 목표에 가까우면 이동 멈춤 (달리기 모드는 유지)
+      if (_isMoving) {
+        setState(() {
+          _isMoving = false;
+        });
+        _walkController.stop();
+        _walkController.reset();
+      }
       return;
+    }
+
+    // 다시 움직이기 시작할 때 애니메이션 재개
+    if (!_isMoving) {
+      setState(() {
+        _isMoving = true;
+      });
+      _walkController.duration = const Duration(milliseconds: 250);
+      _walkController.repeat();
     }
 
     const speed = 400.0; // 달리기 속도 (픽셀/초)
