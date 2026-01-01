@@ -101,7 +101,7 @@ lib/
 ├── l10n/                        # 다국어 지원 (ko, en, ja)
 ├── models/
 │   ├── user_model.dart
-│   ├── village_model.dart       # 마을 데이터 모델 (수용인원, 공개/비공개)
+│   ├── village_model.dart       # 마을 + MembershipRequest + MembershipInvitation 모델
 │   └── chat_model.dart          # 채팅 모델 (ChatMessage, ChatRoom)
 ├── providers/
 │   ├── auth_provider.dart       # 인증 상태 관리
@@ -111,19 +111,22 @@ lib/
 │   ├── main_navigation_screen.dart  # 메인 네비게이션 (4탭)
 │   ├── feed_screen.dart         # 피드 탭
 │   ├── search_screen.dart       # 검색 탭 (마을+사용자 통합 검색)
-│   ├── town_screen.dart         # 마을 탭 (전체 마을 리스트)
+│   ├── town_screen.dart         # 마을 탭 (전체 마을 리스트, 초대 관리)
 │   ├── my_village_screen.dart   # 내 마을 상세 화면
 │   ├── create_village_screen.dart   # 마을 생성 화면
 │   ├── settings_screen.dart     # 설정 화면
-│   └── chat_screen.dart         # 채팅 화면 (목록 + 채팅방)
+│   ├── chat_screen.dart         # 채팅 화면 (목록 + 채팅방)
+│   ├── membership_management_screen.dart  # 주민 신청/초대 관리 (이장용)
+│   └── invitations_screen.dart  # 받은 초대 관리 화면
 ├── services/
 │   ├── auth_service.dart        # 인증 서비스
-│   ├── village_service.dart     # 마을 CRUD 서비스 (입장/퇴장 포함)
+│   ├── village_service.dart     # 마을 CRUD + 주민 신청/초대 서비스
 │   ├── player_service.dart      # 멀티플레이어 상태 관리
 │   ├── chat_service.dart        # 채팅 서비스 (1:1, 그룹)
 │   └── search_service.dart      # 통합 검색 서비스
 └── widgets/
-    └── globe_widget.dart        # 지구본 위젯
+    ├── globe_widget.dart        # 지구본 위젯
+    └── membership_button.dart   # 주민 관리 버튼 위젯
 ```
 
 ## Key Components
@@ -140,12 +143,14 @@ lib/
 
 ### Screens
 - **MainNavigationScreen**: 하단 4탭 네비게이션 (피드, 검색, 마을, 설정)
-- **TownScreen**: 전체 마을 리스트 (간단한 카드 형태)
+- **TownScreen**: 전체 마을 리스트 (간단한 카드 형태), 초대 배지 표시
 - **MyVillageScreen**: 내 마을 상세 정보 및 관리
 - **CreateVillageScreen**: 마을 생성 (이름 입력, 자동 위치 배정)
 - **CreateCharacterScreen**: 캐릭터 이름 입력 화면 (로그인 후 캐릭터 없으면 자동 이동)
 - **CharacterDesignScreen**: 캐릭터 그리기 화면 (Firestore에 저장)
 - **VillageLand**: 마을 내부 탐험 화면 (캐릭터 이동 가능)
+- **MembershipManagementScreen**: 주민 신청/초대 관리 (이장 전용)
+- **InvitationsScreen**: 받은 초대 목록 및 수락/거절
 
 ## Technical Notes
 
@@ -157,7 +162,7 @@ lib/
 
 ## Current Implementation Status
 
-**현재 버전: 1.0.4**
+**현재 버전: 1.0.5**
 
 ### Completed
 - [x] Firebase 프로젝트 설정 (neontown)
@@ -180,6 +185,10 @@ lib/
 - [x] 멀티플레이어 기능 (실시간 위치 동기화, 말풍선)
 - [x] 채팅방 기능 구현 (1:1, 그룹 채팅)
 - [x] 통합 검색 기능 (마을+사용자 동시 검색, 채팅 연동)
+- [x] 주민 신청 기능 (MembershipRequest: pending/approved/rejected)
+- [x] 주민 초대 기능 (MembershipInvitation: 이장이 사용자 초대)
+- [x] 주민 관리 화면 (MembershipManagementScreen)
+- [x] 초대 관리 화면 (InvitationsScreen)
 
 ### In Progress
 - [ ] Apple 로그인 설정 (Apple Developer 설정 필요)
