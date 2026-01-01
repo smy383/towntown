@@ -110,17 +110,18 @@ lib/
 │   ├── auth_screen.dart         # 로그인 화면
 │   ├── main_navigation_screen.dart  # 메인 네비게이션 (4탭)
 │   ├── feed_screen.dart         # 피드 탭
-│   ├── search_screen.dart       # 검색 탭
+│   ├── search_screen.dart       # 검색 탭 (마을+사용자 통합 검색)
 │   ├── town_screen.dart         # 마을 탭 (전체 마을 리스트)
 │   ├── my_village_screen.dart   # 내 마을 상세 화면
 │   ├── create_village_screen.dart   # 마을 생성 화면
 │   ├── settings_screen.dart     # 설정 화면
-│   └── chat_screen.dart         # 채팅 화면 (목록 + 채팅방) - 미연결
+│   └── chat_screen.dart         # 채팅 화면 (목록 + 채팅방)
 ├── services/
 │   ├── auth_service.dart        # 인증 서비스
 │   ├── village_service.dart     # 마을 CRUD 서비스 (입장/퇴장 포함)
 │   ├── player_service.dart      # 멀티플레이어 상태 관리
-│   └── chat_service.dart        # 채팅 서비스 (1:1, 그룹) - 미연결
+│   ├── chat_service.dart        # 채팅 서비스 (1:1, 그룹)
+│   └── search_service.dart      # 통합 검색 서비스
 └── widgets/
     └── globe_widget.dart        # 지구본 위젯
 ```
@@ -177,16 +178,15 @@ lib/
 - [x] 마을 입장 기능 (캐릭터 확인 후 VillageLand 진입)
 - [x] 마을 수용 인원 시스템 (최대 10명, 공개/비공개)
 - [x] 멀티플레이어 기능 (실시간 위치 동기화, 말풍선)
-- [x] 채팅방 기능 구현 (1:1, 그룹 채팅) - UI 미연결 상태
+- [x] 채팅방 기능 구현 (1:1, 그룹 채팅)
+- [x] 통합 검색 기능 (마을+사용자 동시 검색, 채팅 연동)
 
 ### In Progress
 - [ ] Apple 로그인 설정 (Apple Developer 설정 필요)
 - [ ] Kakao 로그인 설정 (Kakao Developers 설정 필요)
 
 ### Pending
-- [ ] 채팅방 UI 연결 (메인 앱에 채팅 탭 추가)
 - [ ] 피드 기능 (게시글 작성/조회)
-- [ ] 검색 기능 (마을/사용자 검색)
 - [ ] 프로필/내 정보 화면
 
 ## Firebase Configuration
