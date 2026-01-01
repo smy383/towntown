@@ -81,6 +81,26 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ===== Save Character (Name + Strokes) =====
+  Future<void> saveCharacter({
+    required String name,
+    required List<Map<String, dynamic>> strokes,
+  }) async {
+    await _authService.saveCharacter(name: name, strokes: strokes);
+    _needsCharacterSetup = false;
+    notifyListeners();
+  }
+
+  // ===== Get User Data =====
+  Future<Map<String, dynamic>?> getUserData() async {
+    return await _authService.getUserData();
+  }
+
+  // ===== Check if user has character =====
+  Future<bool> hasCharacter() async {
+    return await _authService.hasCharacter();
+  }
+
   // ===== Sign Out =====
   Future<void> signOut() async {
     await _authService.signOut();

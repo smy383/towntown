@@ -157,6 +157,38 @@ class AuthService {
     _needsCharacterSetup = false;
   }
 
+  // ===== Save Character (Name + Strokes) =====
+  Future<void> saveCharacter({
+    required String name,
+    required List<Map<String, dynamic>> strokes,
+  }) async {
+    final user = currentUser;
+    if (user == null) return;
+
+    await _firestore.collection('users').doc(user.uid).update({
+      'characterName': name,
+      'characterStrokes': strokes,
+    });
+    _needsCharacterSetup = false;
+  }
+
+  // ===== Get User Data =====
+  Future<Map<String, dynamic>?> getUserData() async {
+    final user = currentUser;
+    if (user == null) return null;
+
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+    return doc.data();
+  }
+
+  // ===== Check if user has character =====
+  Future<bool> hasCharacter() async {
+    final userData = await getUserData();
+    if (userData == null) return false;
+    final characterName = userData['characterName'];
+    return characterName != null && characterName.toString().isNotEmpty;
+  }
+
   // ===== Sign Out =====
   Future<void> signOut() async {
     // Sign out from Google if applicable

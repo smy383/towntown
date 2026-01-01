@@ -6,6 +6,7 @@ class UserModel {
   final String? displayName;
   final String? photoURL;
   final String? characterName;
+  final List<Map<String, dynamic>>? characterStrokes; // 캐릭터 그림 데이터
   final DateTime joinDate;
   final String loginProvider; // 'google', 'apple', 'kakao'
 
@@ -15,9 +16,13 @@ class UserModel {
     this.displayName,
     this.photoURL,
     this.characterName,
+    this.characterStrokes,
     required this.joinDate,
     required this.loginProvider,
   });
+
+  /// 캐릭터가 생성되었는지 확인
+  bool get hasCharacter => characterName != null && characterName!.isNotEmpty;
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -27,6 +32,9 @@ class UserModel {
       displayName: data['displayName'],
       photoURL: data['photoURL'],
       characterName: data['characterName'],
+      characterStrokes: data['characterStrokes'] != null
+          ? List<Map<String, dynamic>>.from(data['characterStrokes'])
+          : null,
       joinDate: data['joinDate'] != null
           ? (data['joinDate'] as Timestamp).toDate()
           : DateTime.now(),
@@ -41,6 +49,7 @@ class UserModel {
       'displayName': displayName,
       'photoURL': photoURL,
       'characterName': characterName,
+      'characterStrokes': characterStrokes,
       'joinDate': Timestamp.fromDate(joinDate),
       'loginProvider': loginProvider,
     };
@@ -52,6 +61,7 @@ class UserModel {
     String? displayName,
     String? photoURL,
     String? characterName,
+    List<Map<String, dynamic>>? characterStrokes,
     DateTime? joinDate,
     String? loginProvider,
   }) {
@@ -61,6 +71,7 @@ class UserModel {
       displayName: displayName ?? this.displayName,
       photoURL: photoURL ?? this.photoURL,
       characterName: characterName ?? this.characterName,
+      characterStrokes: characterStrokes ?? this.characterStrokes,
       joinDate: joinDate ?? this.joinDate,
       loginProvider: loginProvider ?? this.loginProvider,
     );

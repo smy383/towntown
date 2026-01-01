@@ -71,12 +71,62 @@ class TownTownApp extends StatelessWidget {
               return const AuthScreen();
             }
 
-            // Show main navigation screen if authenticated
-            return const MainNavigationScreen();
+            // Check if character setup is needed
+            return const _AuthenticatedHome();
           },
         ),
         ),
       ),
+    );
+  }
+}
+
+/// 인증된 사용자의 홈 화면 결정
+class _AuthenticatedHome extends StatefulWidget {
+  const _AuthenticatedHome();
+
+  @override
+  State<_AuthenticatedHome> createState() => _AuthenticatedHomeState();
+}
+
+class _AuthenticatedHomeState extends State<_AuthenticatedHome> {
+  late Future<bool> _hasCharacterFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _hasCharacterFuture = context.read<AuthProvider>().hasCharacter();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _hasCharacterFuture,
+      builder: (context, snapshot) {
+        // 로딩 중
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: Colors.black,
+            body: Center(
+              child: CircularProgressIndicator(color: Colors.cyanAccent),
+            ),
+          );
+        }
+
+        // 에러 발생
+        if (snapshot.hasError) {
+          return const MainNavigationScreen();
+        }
+
+        // 캐릭터가 없으면 생성 화면으로
+        final hasCharacter = snapshot.data ?? false;
+        if (!hasCharacter) {
+          return const CreateCharacterScreen();
+        }
+
+        // 캐릭터가 있으면 메인 화면으로
+        return const MainNavigationScreen();
+      },
     );
   }
 }
@@ -457,25 +507,40 @@ class _CharacterDesignScreenState extends State<CharacterDesignScreen> {
 
           const SizedBox(height: 16),
 
-          // 마을로 가기 / 저장 버튼
+          // 완료 / 저장 버튼
           Padding(
             padding: const EdgeInsets.only(bottom: 32),
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (widget.isEditMode) {
                   // 수정 모드: strokes 반환
                   Navigator.pop(context, _strokes);
                 } else {
-                  // 새로 만들기 모드: 마을로 이동
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => VillageLand(
-                        characterName: widget.characterName,
-                        characterStrokes: _strokes,
-                      ),
-                    ),
+                  // 새로 만들기 모드: Firestore에 저장 후 메인 화면으로
+                  final authProvider = context.read<AuthProvider>();
+
+                  // DrawingStroke를 Map으로 변환
+                  final strokesData = _strokes.map((stroke) => {
+                    'points': stroke.points.map((p) => {'x': p.dx, 'y': p.dy}).toList(),
+                    'color': stroke.color.value,
+                    'strokeWidth': stroke.strokeWidth,
+                  }).toList();
+
+                  // Firestore에 저장
+                  await authProvider.saveCharacter(
+                    name: widget.characterName,
+                    strokes: strokesData,
                   );
+
+                  // 메인 화면으로 이동
+                  if (context.mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MainNavigationScreen(),
+                      ),
+                    );
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -483,7 +548,7 @@ class _CharacterDesignScreenState extends State<CharacterDesignScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
               ),
               child: Text(
-                widget.isEditMode ? '저장하기' : '마을로 가기',
+                widget.isEditMode ? '저장하기' : '완료',
                 style: const TextStyle(fontSize: 16),
               ),
             ),

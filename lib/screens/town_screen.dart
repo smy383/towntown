@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../services/village_service.dart';
 import '../models/village_model.dart';
+import '../providers/auth_provider.dart';
+import '../main.dart' show CreateCharacterScreen, VillageLand, DrawingStroke;
 
 class TownScreen extends StatefulWidget {
   const TownScreen({super.key});
@@ -39,6 +42,62 @@ class _TownScreenState extends State<TownScreen> {
 
   Future<void> _refreshVillages() async {
     await _loadVillages();
+  }
+
+  /// 마을 진입 처리
+  Future<void> _enterVillage(VillageModel village) async {
+    final authProvider = context.read<AuthProvider>();
+
+    // 캐릭터 확인
+    final hasCharacter = await authProvider.hasCharacter();
+
+    if (!mounted) return;
+
+    if (!hasCharacter) {
+      // 캐릭터가 없으면 생성 화면으로
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CreateCharacterScreen(),
+        ),
+      );
+      return;
+    }
+
+    // 캐릭터 데이터 불러오기
+    final userData = await authProvider.getUserData();
+    if (!mounted || userData == null) return;
+
+    final characterName = userData['characterName'] ?? '';
+    final strokesData = userData['characterStrokes'] as List<dynamic>? ?? [];
+
+    // Map 데이터를 DrawingStroke로 변환
+    final characterStrokes = strokesData.map((strokeData) {
+      final pointsData = strokeData['points'] as List<dynamic>? ?? [];
+      final points = pointsData.map((p) => Offset(
+        (p['x'] as num).toDouble(),
+        (p['y'] as num).toDouble(),
+      )).toList();
+
+      return DrawingStroke(
+        points: points,
+        color: Color(strokeData['color'] as int? ?? 0xFF000000),
+        strokeWidth: (strokeData['strokeWidth'] as num?)?.toDouble() ?? 3.0,
+      );
+    }).toList();
+
+    // VillageLand로 이동
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VillageLand(
+            characterName: characterName,
+            characterStrokes: characterStrokes,
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -110,11 +169,7 @@ class _TownScreenState extends State<TownScreen> {
           itemBuilder: (context, index) {
             return _VillageCard(
               village: _villages[index],
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.comingSoon)),
-                );
-              },
+              onTap: () => _enterVillage(_villages[index]),
             );
           },
         ),

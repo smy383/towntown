@@ -138,8 +138,9 @@ lib/
 - **TownScreen**: 전체 마을 리스트 (간단한 카드 형태)
 - **MyVillageScreen**: 내 마을 상세 정보 및 관리
 - **CreateVillageScreen**: 마을 생성 (이름 입력, 자동 위치 배정)
-- **CreateCharacterScreen**: Character name input with animated preview (미연결)
-- **VillageLand**: Main game area with tap-to-move character control (미연결)
+- **CreateCharacterScreen**: 캐릭터 이름 입력 화면 (로그인 후 캐릭터 없으면 자동 이동)
+- **CharacterDesignScreen**: 캐릭터 그리기 화면 (Firestore에 저장)
+- **VillageLand**: 마을 내부 탐험 화면 (캐릭터 이동 가능)
 
 ## Technical Notes
 
@@ -151,7 +152,7 @@ lib/
 
 ## Current Implementation Status
 
-**현재 버전: 1.0.1**
+**현재 버전: 1.0.2**
 
 ### Completed
 - [x] Firebase 프로젝트 설정 (neontown)
@@ -167,15 +168,16 @@ lib/
 - [x] 마을 탭 - 전체 마을 리스트 (간단한 카드 UI)
 - [x] 내 마을 화면 (MyVillageScreen) 분리
 - [x] Firebase Hosting 배포 설정
+- [x] 캐릭터 생성 화면 연결 (로그인 후 캐릭터 없으면 자동 이동)
+- [x] 캐릭터 데이터 Firestore 저장 (이름 + 그림 데이터)
+- [x] 마을 입장 기능 (캐릭터 확인 후 VillageLand 진입)
 
 ### In Progress
 - [ ] Apple 로그인 설정 (Apple Developer 설정 필요)
 - [ ] Kakao 로그인 설정 (Kakao Developers 설정 필요)
 
 ### Pending
-- [ ] 마을 입장 기능 (마을 내부 탐험)
 - [ ] 마을 탐험 기능 (다른 마을 방문)
-- [ ] 캐릭터 생성 화면 연결
 - [ ] 피드 기능 (게시글 작성/조회)
 - [ ] 검색 기능 (마을/사용자 검색)
 - [ ] 프로필/내 정보 화면
