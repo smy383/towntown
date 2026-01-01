@@ -2468,7 +2468,11 @@ class _VillageLandState extends State<VillageLand>
                 onLongPressStart: (details) {
                   final tapPos = details.localPosition;
                   _hideEditButton();
-                  _moveCharacter(tapPos, running: true);
+                  _startRunning(tapPos);
+                },
+                onLongPressMoveUpdate: (details) {
+                  final tapPos = details.localPosition;
+                  _updateRunTarget(tapPos);
                 },
                 onLongPressEnd: (_) {
                   _stopRunning();
