@@ -162,13 +162,14 @@ lib/
 
 ## Current Implementation Status
 
-**현재 버전: 1.0.5**
+**현재 버전: 1.0.6**
 
 ### Completed
 - [x] Firebase 프로젝트 설정 (neontown)
 - [x] Google 로그인 (Android, iOS, Web)
 - [x] Cloud Firestore 설정 (asia-northeast3)
-- [x] 보안 규칙 (firestore.rules)
+- [x] 보안 규칙 (firestore.rules) - players, membershipRequests, membershipInvitations 포함
+- [x] Firestore 인덱스 설정 (firestore.indexes.json)
 - [x] 메인 네비게이션 (4탭: 피드, 검색, 마을, 설정)
 - [x] 다국어 지원 (ko, en, ja)
 - [x] 언어 수동 선택 기능 (설정 메뉴)
@@ -180,7 +181,7 @@ lib/
 - [x] Firebase Hosting 배포 설정
 - [x] 캐릭터 생성 화면 연결 (로그인 후 캐릭터 없으면 자동 이동)
 - [x] 캐릭터 데이터 Firestore 저장 (이름 + 그림 데이터)
-- [x] 마을 입장 기능 (캐릭터 확인 후 VillageLand 진입)
+- [x] 마을 입장/퇴장 기능 (캐릭터 확인 후 VillageLand 진입)
 - [x] 마을 수용 인원 시스템 (최대 10명, 공개/비공개)
 - [x] 멀티플레이어 기능 (실시간 위치 동기화, 말풍선)
 - [x] 채팅방 기능 구현 (1:1, 그룹 채팅)
@@ -197,6 +198,13 @@ lib/
 ### Pending
 - [ ] 피드 기능 (게시글 작성/조회)
 - [ ] 프로필/내 정보 화면
+
+## Tech Stack
+
+- **Flutter**: 3.35.2 (Dart 3.9.0)
+- **Android SDK**: 36.0.0 (Android 16 지원)
+- **16KB 페이지**: 지원됨 (Flutter 3.22+)
+- **Firebase**: core 4.3.0, auth 6.1.3, firestore 6.1.1
 
 ## Firebase Configuration
 
