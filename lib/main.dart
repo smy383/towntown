@@ -2419,6 +2419,15 @@ class _VillageLandState extends State<VillageLand>
       80,
     );
 
+    // 나가기 버튼 영역 (좌상단)
+    final safeTop = MediaQuery.of(context).padding.top;
+    final exitButtonRect = Rect.fromLTWH(
+      16,
+      safeTop + 16,
+      48,
+      48,
+    );
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -2433,8 +2442,8 @@ class _VillageLandState extends State<VillageLand>
         body: GestureDetector(
         onTapDown: (details) {
           final tapPos = details.localPosition;
-          // 캐릭터 영역 또는 채팅창 영역 터치는 무시
-          if (characterRect.contains(tapPos) || chatInputRect.contains(tapPos)) {
+          // 캐릭터 영역, 채팅창 영역, 나가기 버튼 영역 터치는 무시
+          if (characterRect.contains(tapPos) || chatInputRect.contains(tapPos) || exitButtonRect.contains(tapPos)) {
             return;
           }
           _hideEditButton();
@@ -2446,8 +2455,8 @@ class _VillageLandState extends State<VillageLand>
         },
         onLongPressStart: (details) {
           final tapPos = details.localPosition;
-          // 캐릭터 영역 또는 채팅창 영역 터치는 무시
-          if (characterRect.contains(tapPos) || chatInputRect.contains(tapPos)) {
+          // 캐릭터 영역, 채팅창 영역, 나가기 버튼 영역 터치는 무시
+          if (characterRect.contains(tapPos) || chatInputRect.contains(tapPos) || exitButtonRect.contains(tapPos)) {
             return;
           }
           _hideEditButton();
