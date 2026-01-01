@@ -154,4 +154,18 @@ class L10nKo extends L10n {
 
   @override
   String get createFirstVillage => '첫 번째 마을을 만들어보세요!';
+
+  @override
+  String get villageFull => '마을 정원이 가득 찼습니다';
+
+  @override
+  String get villagePrivate => '비공개 마을입니다';
+
+  @override
+  String get villageNotFound => '마을을 찾을 수 없습니다';
+
+  @override
+  String villageCapacity(Object current, Object max) {
+    return '$current/$max명';
+  }
 }

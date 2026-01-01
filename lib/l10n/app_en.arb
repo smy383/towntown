@@ -48,5 +48,9 @@
   "allVillages": "All Villages",
   "population": "Population",
   "noVillageYet": "No villages yet",
-  "createFirstVillage": "Create the first village!"
+  "createFirstVillage": "Create the first village!",
+  "villageFull": "Village is full",
+  "villagePrivate": "This is a private village",
+  "villageNotFound": "Village not found",
+  "villageCapacity": "{current}/{max}"
 }

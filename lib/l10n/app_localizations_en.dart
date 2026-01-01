@@ -154,4 +154,18 @@ class L10nEn extends L10n {
 
   @override
   String get createFirstVillage => 'Create the first village!';
+
+  @override
+  String get villageFull => 'Village is full';
+
+  @override
+  String get villagePrivate => 'This is a private village';
+
+  @override
+  String get villageNotFound => 'Village not found';
+
+  @override
+  String villageCapacity(Object current, Object max) {
+    return '$current/$max';
+  }
 }

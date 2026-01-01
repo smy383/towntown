@@ -154,4 +154,18 @@ class L10nJa extends L10n {
 
   @override
   String get createFirstVillage => '最初の村を作りましょう!';
+
+  @override
+  String get villageFull => '村の定員がいっぱいです';
+
+  @override
+  String get villagePrivate => '非公開の村です';
+
+  @override
+  String get villageNotFound => '村が見つかりません';
+
+  @override
+  String villageCapacity(Object current, Object max) {
+    return '$current/$max人';
+  }
 }

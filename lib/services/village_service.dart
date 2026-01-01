@@ -156,6 +156,97 @@ class VillageService {
         .doc(villageId)
         .update(data);
   }
+
+  /// 마을 진입
+  /// 성공 시 true, 실패 시 false 반환
+  Future<VillageEntryResult> enterVillage({
+    required String villageId,
+    required String userId,
+  }) async {
+    final docRef = _firestore.collection('villages').doc(villageId);
+
+    return await _firestore.runTransaction<VillageEntryResult>((transaction) async {
+      final doc = await transaction.get(docRef);
+
+      if (!doc.exists) {
+        return VillageEntryResult.notFound;
+      }
+
+      final village = VillageModel.fromFirestore(doc);
+
+      // 이미 마을에 있는지 확인
+      if (village.residents.contains(userId)) {
+        return VillageEntryResult.alreadyInside;
+      }
+
+      // 마을이 가득 찼는지 확인
+      if (village.isFull) {
+        return VillageEntryResult.full;
+      }
+
+      // 비공개 마을인 경우 (추후 초대 시스템 구현)
+      if (!village.isPublic && village.ownerId != userId) {
+        return VillageEntryResult.private;
+      }
+
+      // 진입 처리
+      final newResidents = [...village.residents, userId];
+      transaction.update(docRef, {
+        'residents': newResidents,
+        'population': newResidents.length,
+      });
+
+      return VillageEntryResult.success;
+    });
+  }
+
+  /// 마을 퇴장
+  Future<bool> leaveVillage({
+    required String villageId,
+    required String userId,
+  }) async {
+    final docRef = _firestore.collection('villages').doc(villageId);
+
+    return await _firestore.runTransaction<bool>((transaction) async {
+      final doc = await transaction.get(docRef);
+
+      if (!doc.exists) {
+        return false;
+      }
+
+      final village = VillageModel.fromFirestore(doc);
+
+      // 마을에 없으면 무시
+      if (!village.residents.contains(userId)) {
+        return true;
+      }
+
+      // 퇴장 처리
+      final newResidents = village.residents.where((id) => id != userId).toList();
+      transaction.update(docRef, {
+        'residents': newResidents,
+        'population': newResidents.length,
+      });
+
+      return true;
+    });
+  }
+
+  /// 마을 조회 (ID로)
+  Future<VillageModel?> getVillage(String villageId) async {
+    final doc = await _firestore.collection('villages').doc(villageId).get();
+    if (!doc.exists) return null;
+    return VillageModel.fromFirestore(doc);
+  }
+}
+
+/// 마을 진입 결과
+enum VillageEntryResult {
+  success,      // 성공
+  full,         // 정원 초과
+  private,      // 비공개 마을 (초대 필요)
+  notFound,     // 마을 없음
+  alreadyInside, // 이미 마을 안에 있음
 }
 
 /// 내부 좌표 클래스

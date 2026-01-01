@@ -392,6 +392,30 @@ abstract class L10n {
   /// In ko, this message translates to:
   /// **'첫 번째 마을을 만들어보세요!'**
   String get createFirstVillage;
+
+  /// No description provided for @villageFull.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을 정원이 가득 찼습니다'**
+  String get villageFull;
+
+  /// No description provided for @villagePrivate.
+  ///
+  /// In ko, this message translates to:
+  /// **'비공개 마을입니다'**
+  String get villagePrivate;
+
+  /// No description provided for @villageNotFound.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을을 찾을 수 없습니다'**
+  String get villageNotFound;
+
+  /// No description provided for @villageCapacity.
+  ///
+  /// In ko, this message translates to:
+  /// **'{current}/{max}명'**
+  String villageCapacity(Object current, Object max);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

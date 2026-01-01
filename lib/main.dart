@@ -12,6 +12,7 @@ import 'providers/auth_provider.dart';
 import 'providers/locale_provider.dart';
 import 'screens/auth_screen.dart';
 import 'screens/main_navigation_screen.dart';
+import 'services/village_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -1642,11 +1643,13 @@ class CustomCharacterPainter extends CustomPainter {
 
 /// 마을 토지
 class VillageLand extends StatefulWidget {
+  final String? villageId;
   final String characterName;
   final List<DrawingStroke> characterStrokes;
 
   const VillageLand({
     super.key,
+    this.villageId,
     required this.characterName,
     required this.characterStrokes,
   });
@@ -1660,6 +1663,8 @@ class _VillageLandState extends State<VillageLand>
   // 월드 크기 (화면보다 큼)
   static const double worldWidth = 2000;
   static const double worldHeight = 2000;
+
+  final VillageService _villageService = VillageService();
 
   // 캐릭터의 월드 좌표
   double _worldX = worldWidth / 2;
@@ -1744,6 +1749,27 @@ class _VillageLandState extends State<VillageLand>
     _chatFocusNode.dispose();
     _runTicker?.dispose();
     super.dispose();
+  }
+
+  /// 마을 퇴장
+  Future<void> _leaveVillage() async {
+    final villageId = widget.villageId;
+    if (villageId == null) return;
+
+    final authProvider = context.read<AuthProvider>();
+    final userId = authProvider.user?.uid;
+    if (userId == null) return;
+
+    await _villageService.leaveVillage(
+      villageId: villageId,
+      userId: userId,
+    );
+  }
+
+  /// 나가기 버튼 처리
+  Future<bool> _onWillPop() async {
+    await _leaveVillage();
+    return true;
   }
 
   // 채팅 메시지 전송
@@ -2177,9 +2203,18 @@ class _VillageLandState extends State<VillageLand>
       80,
     );
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: GestureDetector(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _leaveVillage();
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: GestureDetector(
         onTapDown: (details) {
           final tapPos = details.localPosition;
           // 캐릭터 영역 또는 채팅창 영역 터치는 무시
@@ -2385,6 +2420,33 @@ class _VillageLandState extends State<VillageLand>
                 ),
               ),
 
+            // 나가기 버튼 (좌상단)
+            Positioned(
+              left: 16,
+              top: MediaQuery.of(context).padding.top + 16,
+              child: GestureDetector(
+                onTap: () async {
+                  await _leaveVillage();
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
+
             // 채팅 입력창 (하단)
             Positioned(
               left: 16,
@@ -2462,6 +2524,7 @@ class _VillageLandState extends State<VillageLand>
             ),
           ],
         ),
+      ),
       ),
     );
   }

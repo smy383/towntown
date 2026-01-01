@@ -50,7 +50,13 @@ class _MyVillageScreenState extends State<MyVillageScreen> {
 
   /// 마을 진입 처리
   Future<void> _enterMyVillage() async {
+    if (_myVillage == null) return;
+
     final authProvider = context.read<AuthProvider>();
+    final l10n = L10n.of(context)!;
+    final userId = authProvider.user?.uid;
+
+    if (userId == null) return;
 
     // 캐릭터 확인
     final hasCharacter = await authProvider.hasCharacter();
@@ -66,6 +72,37 @@ class _MyVillageScreenState extends State<MyVillageScreen> {
         ),
       );
       return;
+    }
+
+    // 마을 진입 시도
+    final entryResult = await _villageService.enterVillage(
+      villageId: _myVillage!.id,
+      userId: userId,
+    );
+
+    if (!mounted) return;
+
+    // 진입 결과 처리
+    switch (entryResult) {
+      case VillageEntryResult.full:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.villageFull)),
+        );
+        return;
+      case VillageEntryResult.private:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.villagePrivate)),
+        );
+        return;
+      case VillageEntryResult.notFound:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.villageNotFound)),
+        );
+        return;
+      case VillageEntryResult.success:
+      case VillageEntryResult.alreadyInside:
+        // 진입 성공 또는 이미 안에 있음 - 계속 진행
+        break;
     }
 
     // 캐릭터 데이터 불러오기
@@ -96,6 +133,7 @@ class _MyVillageScreenState extends State<MyVillageScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => VillageLand(
+            villageId: _myVillage!.id,
             characterName: characterName,
             characterStrokes: characterStrokes,
           ),
