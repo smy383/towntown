@@ -52,5 +52,13 @@
   "villageFull": "Village is full",
   "villagePrivate": "This is a private village",
   "villageNotFound": "Village not found",
-  "villageCapacity": "{current}/{max}"
+  "villageCapacity": "{current}/{max}",
+  "chatTitle": "Chat",
+  "loginRequired": "Login required",
+  "noChatRooms": "No chat rooms",
+  "noMessages": "No messages yet",
+  "messageHint": "Type a message",
+  "leaveChat": "Leave Chat",
+  "leaveChatConfirm": "Are you sure you want to leave this chat?",
+  "leave": "Leave"
 }

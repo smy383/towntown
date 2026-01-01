@@ -168,4 +168,28 @@ class L10nKo extends L10n {
   String villageCapacity(Object current, Object max) {
     return '$current/$max명';
   }
+
+  @override
+  String get chatTitle => '채팅';
+
+  @override
+  String get loginRequired => '로그인이 필요합니다';
+
+  @override
+  String get noChatRooms => '채팅방이 없습니다';
+
+  @override
+  String get noMessages => '메시지가 없습니다';
+
+  @override
+  String get messageHint => '메시지를 입력하세요';
+
+  @override
+  String get leaveChat => '채팅방 나가기';
+
+  @override
+  String get leaveChatConfirm => '정말 채팅방을 나가시겠습니까?';
+
+  @override
+  String get leave => '나가기';
 }

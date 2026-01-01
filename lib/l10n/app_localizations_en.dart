@@ -168,4 +168,28 @@ class L10nEn extends L10n {
   String villageCapacity(Object current, Object max) {
     return '$current/$max';
   }
+
+  @override
+  String get chatTitle => 'Chat';
+
+  @override
+  String get loginRequired => 'Login required';
+
+  @override
+  String get noChatRooms => 'No chat rooms';
+
+  @override
+  String get noMessages => 'No messages yet';
+
+  @override
+  String get messageHint => 'Type a message';
+
+  @override
+  String get leaveChat => 'Leave Chat';
+
+  @override
+  String get leaveChatConfirm => 'Are you sure you want to leave this chat?';
+
+  @override
+  String get leave => 'Leave';
 }

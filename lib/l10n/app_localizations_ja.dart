@@ -168,4 +168,28 @@ class L10nJa extends L10n {
   String villageCapacity(Object current, Object max) {
     return '$current/$max人';
   }
+
+  @override
+  String get chatTitle => 'チャット';
+
+  @override
+  String get loginRequired => 'ログインが必要です';
+
+  @override
+  String get noChatRooms => 'チャットルームがありません';
+
+  @override
+  String get noMessages => 'メッセージがありません';
+
+  @override
+  String get messageHint => 'メッセージを入力';
+
+  @override
+  String get leaveChat => 'チャットを退出';
+
+  @override
+  String get leaveChatConfirm => '本当にチャットを退出しますか?';
+
+  @override
+  String get leave => '退出';
 }

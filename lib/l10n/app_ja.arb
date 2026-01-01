@@ -52,5 +52,13 @@
   "villageFull": "村の定員がいっぱいです",
   "villagePrivate": "非公開の村です",
   "villageNotFound": "村が見つかりません",
-  "villageCapacity": "{current}/{max}人"
+  "villageCapacity": "{current}/{max}人",
+  "chatTitle": "チャット",
+  "loginRequired": "ログインが必要です",
+  "noChatRooms": "チャットルームがありません",
+  "noMessages": "メッセージがありません",
+  "messageHint": "メッセージを入力",
+  "leaveChat": "チャットを退出",
+  "leaveChatConfirm": "本当にチャットを退出しますか?",
+  "leave": "退出"
 }

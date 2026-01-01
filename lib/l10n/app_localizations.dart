@@ -416,6 +416,54 @@ abstract class L10n {
   /// In ko, this message translates to:
   /// **'{current}/{max}명'**
   String villageCapacity(Object current, Object max);
+
+  /// No description provided for @chatTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'채팅'**
+  String get chatTitle;
+
+  /// No description provided for @loginRequired.
+  ///
+  /// In ko, this message translates to:
+  /// **'로그인이 필요합니다'**
+  String get loginRequired;
+
+  /// No description provided for @noChatRooms.
+  ///
+  /// In ko, this message translates to:
+  /// **'채팅방이 없습니다'**
+  String get noChatRooms;
+
+  /// No description provided for @noMessages.
+  ///
+  /// In ko, this message translates to:
+  /// **'메시지가 없습니다'**
+  String get noMessages;
+
+  /// No description provided for @messageHint.
+  ///
+  /// In ko, this message translates to:
+  /// **'메시지를 입력하세요'**
+  String get messageHint;
+
+  /// No description provided for @leaveChat.
+  ///
+  /// In ko, this message translates to:
+  /// **'채팅방 나가기'**
+  String get leaveChat;
+
+  /// No description provided for @leaveChatConfirm.
+  ///
+  /// In ko, this message translates to:
+  /// **'정말 채팅방을 나가시겠습니까?'**
+  String get leaveChatConfirm;
+
+  /// No description provided for @leave.
+  ///
+  /// In ko, this message translates to:
+  /// **'나가기'**
+  String get leave;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {
