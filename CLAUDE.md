@@ -96,12 +96,13 @@ flutter build apk --debug
 
 ```
 lib/
-├── main.dart                    # App entry point (Firebase 초기화, 라우팅)
+├── main.dart                    # App entry point (Firebase 초기화, 라우팅, VillageLand)
 ├── firebase_options.dart        # Firebase 설정
 ├── l10n/                        # 다국어 지원 (ko, en, ja)
 ├── models/
 │   ├── user_model.dart
-│   └── village_model.dart       # 마을 데이터 모델
+│   ├── village_model.dart       # 마을 데이터 모델 (수용인원, 공개/비공개)
+│   └── chat_model.dart          # 채팅 모델 (ChatMessage, ChatRoom)
 ├── providers/
 │   ├── auth_provider.dart       # 인증 상태 관리
 │   └── locale_provider.dart     # 언어 설정 관리
@@ -113,10 +114,13 @@ lib/
 │   ├── town_screen.dart         # 마을 탭 (전체 마을 리스트)
 │   ├── my_village_screen.dart   # 내 마을 상세 화면
 │   ├── create_village_screen.dart   # 마을 생성 화면
-│   └── settings_screen.dart     # 설정 화면
+│   ├── settings_screen.dart     # 설정 화면
+│   └── chat_screen.dart         # 채팅 화면 (목록 + 채팅방) - 미연결
 ├── services/
 │   ├── auth_service.dart        # 인증 서비스
-│   └── village_service.dart     # 마을 CRUD 서비스
+│   ├── village_service.dart     # 마을 CRUD 서비스 (입장/퇴장 포함)
+│   ├── player_service.dart      # 멀티플레이어 상태 관리
+│   └── chat_service.dart        # 채팅 서비스 (1:1, 그룹) - 미연결
 └── widgets/
     └── globe_widget.dart        # 지구본 위젯
 ```
@@ -152,7 +156,7 @@ lib/
 
 ## Current Implementation Status
 
-**현재 버전: 1.0.2**
+**현재 버전: 1.0.4**
 
 ### Completed
 - [x] Firebase 프로젝트 설정 (neontown)
@@ -171,13 +175,16 @@ lib/
 - [x] 캐릭터 생성 화면 연결 (로그인 후 캐릭터 없으면 자동 이동)
 - [x] 캐릭터 데이터 Firestore 저장 (이름 + 그림 데이터)
 - [x] 마을 입장 기능 (캐릭터 확인 후 VillageLand 진입)
+- [x] 마을 수용 인원 시스템 (최대 10명, 공개/비공개)
+- [x] 멀티플레이어 기능 (실시간 위치 동기화, 말풍선)
+- [x] 채팅방 기능 구현 (1:1, 그룹 채팅) - UI 미연결 상태
 
 ### In Progress
 - [ ] Apple 로그인 설정 (Apple Developer 설정 필요)
 - [ ] Kakao 로그인 설정 (Kakao Developers 설정 필요)
 
 ### Pending
-- [ ] 마을 탐험 기능 (다른 마을 방문)
+- [ ] 채팅방 UI 연결 (메인 앱에 채팅 탭 추가)
 - [ ] 피드 기능 (게시글 작성/조회)
 - [ ] 검색 기능 (마을/사용자 검색)
 - [ ] 프로필/내 정보 화면
