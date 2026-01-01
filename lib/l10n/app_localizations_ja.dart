@@ -192,4 +192,109 @@ class L10nJa extends L10n {
 
   @override
   String get leave => '退出';
+
+  @override
+  String get membershipRequest => '住民申請';
+
+  @override
+  String get membershipPending => '申請中';
+
+  @override
+  String get membershipMember => '住民';
+
+  @override
+  String get membershipOwner => '村長';
+
+  @override
+  String get membershipRequestSent => '住民申請を送りました';
+
+  @override
+  String get membershipAlreadyMember => 'すでに住民です';
+
+  @override
+  String get membershipAlreadyRequested => 'すでに申請中です';
+
+  @override
+  String get membershipApprove => '承認';
+
+  @override
+  String get membershipReject => '拒否';
+
+  @override
+  String get membershipRemove => '除名';
+
+  @override
+  String get membershipLeave => '住民を辞める';
+
+  @override
+  String get membershipLeaveConfirm => '本当に住民を辞めますか?';
+
+  @override
+  String get membershipRequests => '加入申請';
+
+  @override
+  String get membershipNoRequests => '待機中の申請がありません';
+
+  @override
+  String get membershipApproved => '承認されました';
+
+  @override
+  String get membershipRejected => '拒否されました';
+
+  @override
+  String get members => '住民';
+
+  @override
+  String memberCount(Object count) {
+    return '住民 $count人';
+  }
+
+  @override
+  String villageCapacityInfo(Object bonus, Object current, Object max) {
+    return '収容人員: $current/$max人 (住民 +$bonus)';
+  }
+
+  @override
+  String get inviteMember => '住民を招待';
+
+  @override
+  String get invitationSent => '招待を送りました';
+
+  @override
+  String get invitationAlreadySent => 'すでに招待済みです';
+
+  @override
+  String get invitationReceived => '住民招待が届きました';
+
+  @override
+  String invitationFrom(Object name, Object village) {
+    return '$nameさんが$villageの住民に招待しました';
+  }
+
+  @override
+  String get invitationAccept => '承諾';
+
+  @override
+  String get invitationDecline => '辞退';
+
+  @override
+  String get invitationCancel => '招待をキャンセル';
+
+  @override
+  String get invitationAccepted => '招待を承諾しました';
+
+  @override
+  String get invitationDeclined => '招待を辞退しました';
+
+  @override
+  String get invitationCancelled => '招待をキャンセルしました';
+
+  @override
+  String get myInvitations => '受け取った招待';
+
+  @override
+  String get sentInvitations => '送った招待';
+
+  @override
+  String get noInvitations => '招待がありません';
 }

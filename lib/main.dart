@@ -14,6 +14,7 @@ import 'screens/auth_screen.dart';
 import 'screens/main_navigation_screen.dart';
 import 'services/village_service.dart';
 import 'services/player_service.dart';
+import 'widgets/membership_button.dart';
 import 'dart:async';
 
 void main() async {
@@ -2674,6 +2675,16 @@ class _VillageLandState extends State<VillageLand>
                 ),
               ),
             ),
+
+            // 주민 상태/신청 버튼 (우상단)
+            if (widget.villageId != null)
+              Positioned(
+                right: 16,
+                top: MediaQuery.of(context).padding.top + 16,
+                child: MembershipButton(
+                  villageId: widget.villageId!,
+                ),
+              ),
 
             // 채팅 입력창 (하단)
             Positioned(

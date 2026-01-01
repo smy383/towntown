@@ -464,6 +464,204 @@ abstract class L10n {
   /// In ko, this message translates to:
   /// **'나가기'**
   String get leave;
+
+  /// No description provided for @membershipRequest.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민 신청'**
+  String get membershipRequest;
+
+  /// No description provided for @membershipPending.
+  ///
+  /// In ko, this message translates to:
+  /// **'신청 중'**
+  String get membershipPending;
+
+  /// No description provided for @membershipMember.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민'**
+  String get membershipMember;
+
+  /// No description provided for @membershipOwner.
+  ///
+  /// In ko, this message translates to:
+  /// **'이장'**
+  String get membershipOwner;
+
+  /// No description provided for @membershipRequestSent.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민 신청을 보냈습니다'**
+  String get membershipRequestSent;
+
+  /// No description provided for @membershipAlreadyMember.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 주민입니다'**
+  String get membershipAlreadyMember;
+
+  /// No description provided for @membershipAlreadyRequested.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 신청 중입니다'**
+  String get membershipAlreadyRequested;
+
+  /// No description provided for @membershipApprove.
+  ///
+  /// In ko, this message translates to:
+  /// **'승인'**
+  String get membershipApprove;
+
+  /// No description provided for @membershipReject.
+  ///
+  /// In ko, this message translates to:
+  /// **'거절'**
+  String get membershipReject;
+
+  /// No description provided for @membershipRemove.
+  ///
+  /// In ko, this message translates to:
+  /// **'제명'**
+  String get membershipRemove;
+
+  /// No description provided for @membershipLeave.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민 탈퇴'**
+  String get membershipLeave;
+
+  /// No description provided for @membershipLeaveConfirm.
+  ///
+  /// In ko, this message translates to:
+  /// **'정말 주민에서 탈퇴하시겠습니까?'**
+  String get membershipLeaveConfirm;
+
+  /// No description provided for @membershipRequests.
+  ///
+  /// In ko, this message translates to:
+  /// **'가입 신청'**
+  String get membershipRequests;
+
+  /// No description provided for @membershipNoRequests.
+  ///
+  /// In ko, this message translates to:
+  /// **'대기 중인 신청이 없습니다'**
+  String get membershipNoRequests;
+
+  /// No description provided for @membershipApproved.
+  ///
+  /// In ko, this message translates to:
+  /// **'승인되었습니다'**
+  String get membershipApproved;
+
+  /// No description provided for @membershipRejected.
+  ///
+  /// In ko, this message translates to:
+  /// **'거절되었습니다'**
+  String get membershipRejected;
+
+  /// No description provided for @members.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민'**
+  String get members;
+
+  /// No description provided for @memberCount.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민 {count}명'**
+  String memberCount(Object count);
+
+  /// No description provided for @villageCapacityInfo.
+  ///
+  /// In ko, this message translates to:
+  /// **'수용 인원: {current}/{max}명 (주민 +{bonus})'**
+  String villageCapacityInfo(Object bonus, Object current, Object max);
+
+  /// No description provided for @inviteMember.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민 초대'**
+  String get inviteMember;
+
+  /// No description provided for @invitationSent.
+  ///
+  /// In ko, this message translates to:
+  /// **'초대를 보냈습니다'**
+  String get invitationSent;
+
+  /// No description provided for @invitationAlreadySent.
+  ///
+  /// In ko, this message translates to:
+  /// **'이미 초대를 보냈습니다'**
+  String get invitationAlreadySent;
+
+  /// No description provided for @invitationReceived.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민 초대가 왔습니다'**
+  String get invitationReceived;
+
+  /// No description provided for @invitationFrom.
+  ///
+  /// In ko, this message translates to:
+  /// **'{name}님이 {village} 주민으로 초대했습니다'**
+  String invitationFrom(Object name, Object village);
+
+  /// No description provided for @invitationAccept.
+  ///
+  /// In ko, this message translates to:
+  /// **'수락'**
+  String get invitationAccept;
+
+  /// No description provided for @invitationDecline.
+  ///
+  /// In ko, this message translates to:
+  /// **'거절'**
+  String get invitationDecline;
+
+  /// No description provided for @invitationCancel.
+  ///
+  /// In ko, this message translates to:
+  /// **'초대 취소'**
+  String get invitationCancel;
+
+  /// No description provided for @invitationAccepted.
+  ///
+  /// In ko, this message translates to:
+  /// **'초대를 수락했습니다'**
+  String get invitationAccepted;
+
+  /// No description provided for @invitationDeclined.
+  ///
+  /// In ko, this message translates to:
+  /// **'초대를 거절했습니다'**
+  String get invitationDeclined;
+
+  /// No description provided for @invitationCancelled.
+  ///
+  /// In ko, this message translates to:
+  /// **'초대를 취소했습니다'**
+  String get invitationCancelled;
+
+  /// No description provided for @myInvitations.
+  ///
+  /// In ko, this message translates to:
+  /// **'받은 초대'**
+  String get myInvitations;
+
+  /// No description provided for @sentInvitations.
+  ///
+  /// In ko, this message translates to:
+  /// **'보낸 초대'**
+  String get sentInvitations;
+
+  /// No description provided for @noInvitations.
+  ///
+  /// In ko, this message translates to:
+  /// **'받은 초대가 없습니다'**
+  String get noInvitations;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

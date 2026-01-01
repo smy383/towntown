@@ -158,7 +158,6 @@ class VillageService {
   }
 
   /// 마을 진입
-  /// 성공 시 true, 실패 시 false 반환
   Future<VillageEntryResult> enterVillage({
     required String villageId,
     required String userId,
@@ -175,7 +174,7 @@ class VillageService {
       final village = VillageModel.fromFirestore(doc);
 
       // 이미 마을에 있는지 확인
-      if (village.residents.contains(userId)) {
+      if (village.visitors.contains(userId)) {
         return VillageEntryResult.alreadyInside;
       }
 
@@ -184,16 +183,16 @@ class VillageService {
         return VillageEntryResult.full;
       }
 
-      // 비공개 마을인 경우 (추후 초대 시스템 구현)
-      if (!village.isPublic && village.ownerId != userId) {
+      // 비공개 마을인 경우 주민만 입장 가능
+      if (!village.isPublic && !village.isMember(userId)) {
         return VillageEntryResult.private;
       }
 
       // 진입 처리
-      final newResidents = [...village.residents, userId];
+      final newVisitors = [...village.visitors, userId];
       transaction.update(docRef, {
-        'residents': newResidents,
-        'population': newResidents.length,
+        'visitors': newVisitors,
+        'population': newVisitors.length,
       });
 
       return VillageEntryResult.success;
@@ -217,15 +216,15 @@ class VillageService {
       final village = VillageModel.fromFirestore(doc);
 
       // 마을에 없으면 무시
-      if (!village.residents.contains(userId)) {
+      if (!village.visitors.contains(userId)) {
         return true;
       }
 
       // 퇴장 처리
-      final newResidents = village.residents.where((id) => id != userId).toList();
+      final newVisitors = village.visitors.where((id) => id != userId).toList();
       transaction.update(docRef, {
-        'residents': newResidents,
-        'population': newResidents.length,
+        'visitors': newVisitors,
+        'population': newVisitors.length,
       });
 
       return true;
@@ -238,15 +237,480 @@ class VillageService {
     if (!doc.exists) return null;
     return VillageModel.fromFirestore(doc);
   }
+
+  // ============================================================
+  // 주민 관리 메서드
+  // ============================================================
+
+  /// 주민 가입 신청
+  Future<MembershipRequestResult> requestMembership({
+    required String villageId,
+    required String userId,
+    required String userName,
+  }) async {
+    final villageDoc = await _firestore.collection('villages').doc(villageId).get();
+    if (!villageDoc.exists) {
+      return MembershipRequestResult.villageNotFound;
+    }
+
+    final village = VillageModel.fromFirestore(villageDoc);
+
+    // 이미 주민인 경우
+    if (village.isMember(userId)) {
+      return MembershipRequestResult.alreadyMember;
+    }
+
+    // 이미 신청한 경우
+    final existingRequest = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .where('requesterId', isEqualTo: userId)
+        .where('status', isEqualTo: MembershipRequestStatus.pending.name)
+        .limit(1)
+        .get();
+
+    if (existingRequest.docs.isNotEmpty) {
+      return MembershipRequestResult.alreadyRequested;
+    }
+
+    // 신청 생성
+    final request = MembershipRequest(
+      id: '',
+      villageId: villageId,
+      requesterId: userId,
+      requesterName: userName,
+      status: MembershipRequestStatus.pending,
+      createdAt: DateTime.now(),
+    );
+
+    await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .add(request.toFirestore());
+
+    return MembershipRequestResult.success;
+  }
+
+  /// 주민 가입 승인
+  Future<bool> approveMembership({
+    required String villageId,
+    required String requestId,
+    required String ownerId,
+  }) async {
+    final villageDoc = await _firestore.collection('villages').doc(villageId).get();
+    if (!villageDoc.exists) return false;
+
+    final village = VillageModel.fromFirestore(villageDoc);
+    if (village.ownerId != ownerId) return false; // 이장만 승인 가능
+
+    final requestDoc = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .doc(requestId)
+        .get();
+
+    if (!requestDoc.exists) return false;
+
+    final request = MembershipRequest.fromFirestore(requestDoc);
+
+    // 트랜잭션으로 승인 처리
+    await _firestore.runTransaction((transaction) async {
+      // 신청 상태 업데이트
+      transaction.update(requestDoc.reference, {
+        'status': MembershipRequestStatus.approved.name,
+        'processedAt': FieldValue.serverTimestamp(),
+      });
+
+      // 마을 멤버에 추가
+      transaction.update(villageDoc.reference, {
+        'members': FieldValue.arrayUnion([request.requesterId]),
+      });
+    });
+
+    return true;
+  }
+
+  /// 주민 가입 거절
+  Future<bool> rejectMembership({
+    required String villageId,
+    required String requestId,
+    required String ownerId,
+  }) async {
+    final villageDoc = await _firestore.collection('villages').doc(villageId).get();
+    if (!villageDoc.exists) return false;
+
+    final village = VillageModel.fromFirestore(villageDoc);
+    if (village.ownerId != ownerId) return false; // 이장만 거절 가능
+
+    await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .doc(requestId)
+        .update({
+      'status': MembershipRequestStatus.rejected.name,
+      'processedAt': FieldValue.serverTimestamp(),
+    });
+
+    return true;
+  }
+
+  /// 주민 제명
+  Future<bool> removeMember({
+    required String villageId,
+    required String memberId,
+    required String ownerId,
+  }) async {
+    final villageDoc = await _firestore.collection('villages').doc(villageId).get();
+    if (!villageDoc.exists) return false;
+
+    final village = VillageModel.fromFirestore(villageDoc);
+    if (village.ownerId != ownerId) return false; // 이장만 제명 가능
+    if (memberId == ownerId) return false; // 이장은 제명 불가
+
+    await villageDoc.reference.update({
+      'members': FieldValue.arrayRemove([memberId]),
+    });
+
+    return true;
+  }
+
+  /// 주민 탈퇴 (스스로 나가기)
+  Future<bool> leaveMembership({
+    required String villageId,
+    required String userId,
+  }) async {
+    final villageDoc = await _firestore.collection('villages').doc(villageId).get();
+    if (!villageDoc.exists) return false;
+
+    final village = VillageModel.fromFirestore(villageDoc);
+    if (village.ownerId == userId) return false; // 이장은 탈퇴 불가
+
+    await villageDoc.reference.update({
+      'members': FieldValue.arrayRemove([userId]),
+    });
+
+    return true;
+  }
+
+  /// 대기 중인 가입 신청 목록 조회
+  Future<List<MembershipRequest>> getPendingRequests(String villageId) async {
+    final snapshot = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .where('status', isEqualTo: MembershipRequestStatus.pending.name)
+        .orderBy('createdAt', descending: true)
+        .get();
+
+    return snapshot.docs
+        .map((doc) => MembershipRequest.fromFirestore(doc))
+        .toList();
+  }
+
+  /// 대기 중인 가입 신청 수 스트림
+  Stream<int> pendingRequestsCountStream(String villageId) {
+    return _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .where('status', isEqualTo: MembershipRequestStatus.pending.name)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  /// 사용자의 가입 신청 상태 확인
+  Future<UserMembershipStatus> getUserMembershipStatus({
+    required String villageId,
+    required String userId,
+  }) async {
+    final villageDoc = await _firestore.collection('villages').doc(villageId).get();
+    if (!villageDoc.exists) return UserMembershipStatus.none;
+
+    final village = VillageModel.fromFirestore(villageDoc);
+
+    // 이장인 경우
+    if (village.ownerId == userId) {
+      return UserMembershipStatus.owner;
+    }
+
+    // 주민인 경우
+    if (village.members.contains(userId)) {
+      return UserMembershipStatus.member;
+    }
+
+    // 신청 중인지 확인
+    final pendingRequest = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .where('requesterId', isEqualTo: userId)
+        .where('status', isEqualTo: MembershipRequestStatus.pending.name)
+        .limit(1)
+        .get();
+
+    if (pendingRequest.docs.isNotEmpty) {
+      return UserMembershipStatus.pending;
+    }
+
+    return UserMembershipStatus.none;
+  }
+
+  /// 주민 목록 조회 (이름 포함)
+  Future<List<Map<String, String>>> getMembersList(String villageId) async {
+    final villageDoc = await _firestore.collection('villages').doc(villageId).get();
+    if (!villageDoc.exists) return [];
+
+    final village = VillageModel.fromFirestore(villageDoc);
+    final members = <Map<String, String>>[];
+
+    for (final memberId in village.members) {
+      final userDoc = await _firestore.collection('users').doc(memberId).get();
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        members.add({
+          'uid': memberId,
+          'name': data['characterName'] ?? data['displayName'] ?? 'Unknown',
+        });
+      }
+    }
+
+    return members;
+  }
+
+  /// 내가 주민인 마을 목록 조회
+  Future<List<VillageModel>> getMyMemberVillages(String userId) async {
+    final snapshot = await _firestore
+        .collection('villages')
+        .where('members', arrayContains: userId)
+        .get();
+
+    return snapshot.docs
+        .map((doc) => VillageModel.fromFirestore(doc))
+        .toList();
+  }
+
+  // ============================================================
+  // 주민 초대 메서드 (이장 → 사용자)
+  // ============================================================
+
+  /// 주민 초대 보내기 (이장이 사용자에게)
+  Future<MembershipInvitationResult> inviteMember({
+    required String villageId,
+    required String ownerId,
+    required String ownerName,
+    required String inviteeId,
+    required String inviteeName,
+  }) async {
+    final villageDoc = await _firestore.collection('villages').doc(villageId).get();
+    if (!villageDoc.exists) {
+      return MembershipInvitationResult.villageNotFound;
+    }
+
+    final village = VillageModel.fromFirestore(villageDoc);
+
+    // 이장만 초대 가능
+    if (village.ownerId != ownerId) {
+      return MembershipInvitationResult.notOwner;
+    }
+
+    // 이미 주민인 경우
+    if (village.isMember(inviteeId)) {
+      return MembershipInvitationResult.alreadyMember;
+    }
+
+    // 이미 초대한 경우
+    final existingInvitation = await _firestore
+        .collection('membershipInvitations')
+        .where('villageId', isEqualTo: villageId)
+        .where('inviteeId', isEqualTo: inviteeId)
+        .where('status', isEqualTo: MembershipInvitationStatus.pending.name)
+        .limit(1)
+        .get();
+
+    if (existingInvitation.docs.isNotEmpty) {
+      return MembershipInvitationResult.alreadyInvited;
+    }
+
+    // 초대 생성
+    final invitation = MembershipInvitation(
+      id: '',
+      villageId: villageId,
+      villageName: village.name,
+      inviterId: ownerId,
+      inviterName: ownerName,
+      inviteeId: inviteeId,
+      inviteeName: inviteeName,
+      status: MembershipInvitationStatus.pending,
+      createdAt: DateTime.now(),
+    );
+
+    await _firestore
+        .collection('membershipInvitations')
+        .add(invitation.toFirestore());
+
+    return MembershipInvitationResult.success;
+  }
+
+  /// 초대 수락
+  Future<bool> acceptInvitation({
+    required String invitationId,
+    required String userId,
+  }) async {
+    final invitationDoc = await _firestore
+        .collection('membershipInvitations')
+        .doc(invitationId)
+        .get();
+
+    if (!invitationDoc.exists) return false;
+
+    final invitation = MembershipInvitation.fromFirestore(invitationDoc);
+
+    // 본인 초대만 수락 가능
+    if (invitation.inviteeId != userId) return false;
+
+    // 트랜잭션으로 처리
+    await _firestore.runTransaction((transaction) async {
+      // 초대 상태 업데이트
+      transaction.update(invitationDoc.reference, {
+        'status': MembershipInvitationStatus.accepted.name,
+        'processedAt': FieldValue.serverTimestamp(),
+      });
+
+      // 마을 멤버에 추가
+      final villageRef = _firestore.collection('villages').doc(invitation.villageId);
+      transaction.update(villageRef, {
+        'members': FieldValue.arrayUnion([userId]),
+      });
+    });
+
+    return true;
+  }
+
+  /// 초대 거절
+  Future<bool> declineInvitation({
+    required String invitationId,
+    required String userId,
+  }) async {
+    final invitationDoc = await _firestore
+        .collection('membershipInvitations')
+        .doc(invitationId)
+        .get();
+
+    if (!invitationDoc.exists) return false;
+
+    final invitation = MembershipInvitation.fromFirestore(invitationDoc);
+
+    // 본인 초대만 거절 가능
+    if (invitation.inviteeId != userId) return false;
+
+    await invitationDoc.reference.update({
+      'status': MembershipInvitationStatus.declined.name,
+      'processedAt': FieldValue.serverTimestamp(),
+    });
+
+    return true;
+  }
+
+  /// 초대 취소 (이장이)
+  Future<bool> cancelInvitation({
+    required String invitationId,
+    required String ownerId,
+  }) async {
+    final invitationDoc = await _firestore
+        .collection('membershipInvitations')
+        .doc(invitationId)
+        .get();
+
+    if (!invitationDoc.exists) return false;
+
+    final invitation = MembershipInvitation.fromFirestore(invitationDoc);
+
+    // 이장만 취소 가능
+    if (invitation.inviterId != ownerId) return false;
+
+    // 대기 중인 초대만 취소 가능
+    if (invitation.status != MembershipInvitationStatus.pending) return false;
+
+    await invitationDoc.reference.delete();
+
+    return true;
+  }
+
+  /// 내게 온 초대 목록 조회
+  Future<List<MembershipInvitation>> getMyInvitations(String userId) async {
+    final snapshot = await _firestore
+        .collection('membershipInvitations')
+        .where('inviteeId', isEqualTo: userId)
+        .where('status', isEqualTo: MembershipInvitationStatus.pending.name)
+        .orderBy('createdAt', descending: true)
+        .get();
+
+    return snapshot.docs
+        .map((doc) => MembershipInvitation.fromFirestore(doc))
+        .toList();
+  }
+
+  /// 내게 온 초대 수 스트림
+  Stream<int> myInvitationsCountStream(String userId) {
+    return _firestore
+        .collection('membershipInvitations')
+        .where('inviteeId', isEqualTo: userId)
+        .where('status', isEqualTo: MembershipInvitationStatus.pending.name)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  /// 마을에서 보낸 초대 목록 조회 (이장용)
+  Future<List<MembershipInvitation>> getSentInvitations(String villageId) async {
+    final snapshot = await _firestore
+        .collection('membershipInvitations')
+        .where('villageId', isEqualTo: villageId)
+        .where('status', isEqualTo: MembershipInvitationStatus.pending.name)
+        .orderBy('createdAt', descending: true)
+        .get();
+
+    return snapshot.docs
+        .map((doc) => MembershipInvitation.fromFirestore(doc))
+        .toList();
+  }
 }
 
 /// 마을 진입 결과
 enum VillageEntryResult {
   success,      // 성공
   full,         // 정원 초과
-  private,      // 비공개 마을 (초대 필요)
+  private,      // 비공개 마을 (주민만 입장 가능)
   notFound,     // 마을 없음
   alreadyInside, // 이미 마을 안에 있음
+}
+
+/// 주민 가입 신청 결과
+enum MembershipRequestResult {
+  success,         // 신청 성공
+  alreadyMember,   // 이미 주민
+  alreadyRequested, // 이미 신청 중
+  villageNotFound, // 마을 없음
+}
+
+/// 주민 초대 결과
+enum MembershipInvitationResult {
+  success,         // 초대 성공
+  alreadyMember,   // 이미 주민
+  alreadyInvited,  // 이미 초대 중
+  villageNotFound, // 마을 없음
+  notOwner,        // 이장이 아님
+}
+
+/// 사용자 주민 상태
+enum UserMembershipStatus {
+  none,     // 일반 방문자
+  pending,  // 가입 신청 중
+  member,   // 주민
+  owner,    // 이장 (마을 주인)
 }
 
 /// 내부 좌표 클래스

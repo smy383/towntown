@@ -5,6 +5,7 @@ import '../services/village_service.dart';
 import '../models/village_model.dart';
 import '../providers/auth_provider.dart';
 import '../main.dart' show CreateCharacterScreen, VillageLand, DrawingStroke;
+import 'invitations_screen.dart';
 
 class TownScreen extends StatefulWidget {
   const TownScreen({super.key});
@@ -15,21 +16,36 @@ class TownScreen extends StatefulWidget {
 
 class _TownScreenState extends State<TownScreen> {
   final VillageService _villageService = VillageService();
-  List<VillageModel> _villages = [];
+  List<VillageModel> _allVillages = [];
+  List<VillageModel> _myMemberVillages = [];
+  List<MembershipInvitation> _myInvitations = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadVillages();
+    _loadData();
   }
 
-  Future<void> _loadVillages() async {
+  Future<void> _loadData() async {
+    final authProvider = context.read<AuthProvider>();
+    final userId = authProvider.user?.uid;
+
     try {
-      final villages = await _villageService.getAllVillages();
+      final allVillages = await _villageService.getAllVillages();
+      List<VillageModel> memberVillages = [];
+      List<MembershipInvitation> invitations = [];
+
+      if (userId != null) {
+        memberVillages = await _villageService.getMyMemberVillages(userId);
+        invitations = await _villageService.getMyInvitations(userId);
+      }
+
       if (mounted) {
         setState(() {
-          _villages = villages;
+          _allVillages = allVillages;
+          _myMemberVillages = memberVillages;
+          _myInvitations = invitations;
           _isLoading = false;
         });
       }
@@ -40,8 +56,8 @@ class _TownScreenState extends State<TownScreen> {
     }
   }
 
-  Future<void> _refreshVillages() async {
-    await _loadVillages();
+  Future<void> _refreshData() async {
+    await _loadData();
   }
 
   /// 마을 진입 처리
@@ -132,8 +148,17 @@ class _TownScreenState extends State<TownScreen> {
             characterStrokes: characterStrokes,
           ),
         ),
-      );
+      ).then((_) => _loadData()); // 돌아오면 새로고침
     }
+  }
+
+  void _openInvitationsScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const InvitationsScreen(),
+      ),
+    ).then((_) => _loadData());
   }
 
   @override
@@ -149,7 +174,11 @@ class _TownScreenState extends State<TownScreen> {
       );
     }
 
-    if (_villages.isEmpty) {
+    final hasContent = _allVillages.isNotEmpty ||
+                       _myMemberVillages.isNotEmpty ||
+                       _myInvitations.isNotEmpty;
+
+    if (!hasContent) {
       return Scaffold(
         backgroundColor: Colors.black,
         body: Center(
@@ -196,18 +225,177 @@ class _TownScreenState extends State<TownScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: RefreshIndicator(
-        onRefresh: _refreshVillages,
+        onRefresh: _refreshData,
         color: Colors.purpleAccent,
         backgroundColor: Colors.grey[900],
-        child: ListView.builder(
+        child: ListView(
           padding: const EdgeInsets.all(16),
-          itemCount: _villages.length,
-          itemBuilder: (context, index) {
-            return _VillageCard(
-              village: _villages[index],
-              onTap: () => _enterVillage(_villages[index]),
-            );
-          },
+          children: [
+            // 받은 초대 섹션
+            if (_myInvitations.isNotEmpty) ...[
+              _buildSectionHeader(
+                l10n.myInvitations,
+                Icons.mail,
+                Colors.cyanAccent,
+                trailing: GestureDetector(
+                  onTap: _openInvitationsScreen,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.cyanAccent.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${_myInvitations.length}',
+                          style: const TextStyle(
+                            color: Colors.cyanAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.chevron_right, color: Colors.cyanAccent, size: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              _InvitationPreviewCard(
+                invitation: _myInvitations.first,
+                onTap: _openInvitationsScreen,
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // 내가 주민인 마을 섹션
+            if (_myMemberVillages.isNotEmpty) ...[
+              _buildSectionHeader(
+                '${l10n.membershipMember} ${l10n.townTitle}',
+                Icons.home,
+                Colors.greenAccent,
+              ),
+              const SizedBox(height: 8),
+              ..._myMemberVillages.map((village) => _VillageCard(
+                village: village,
+                onTap: () => _enterVillage(village),
+                accentColor: Colors.greenAccent,
+                badge: l10n.membershipMember,
+              )),
+              const SizedBox(height: 24),
+            ],
+
+            // 모든 마을 섹션
+            _buildSectionHeader(
+              l10n.allVillages,
+              Icons.public,
+              Colors.purpleAccent,
+            ),
+            const SizedBox(height: 8),
+            ..._allVillages.map((village) => _VillageCard(
+              village: village,
+              onTap: () => _enterVillage(village),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon, Color color, {Widget? trailing}) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            color: color,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1,
+            shadows: [
+              Shadow(color: color.withValues(alpha: 0.5), blurRadius: 8),
+            ],
+          ),
+        ),
+        if (trailing != null) ...[
+          const Spacer(),
+          trailing,
+        ],
+      ],
+    );
+  }
+}
+
+/// 초대 미리보기 카드
+class _InvitationPreviewCard extends StatelessWidget {
+  final MembershipInvitation invitation;
+  final VoidCallback onTap;
+
+  const _InvitationPreviewCard({
+    required this.invitation,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = L10n.of(context)!;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.cyanAccent.withValues(alpha: 0.5),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.cyanAccent.withValues(alpha: 0.2),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.cyanAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.mail, color: Colors.cyanAccent),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    invitation.villageName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${invitation.inviterName}${l10n.invitationFrom('', '').split('{')[0]}',
+                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.cyanAccent),
+          ],
         ),
       ),
     );
@@ -217,10 +405,14 @@ class _TownScreenState extends State<TownScreen> {
 class _VillageCard extends StatelessWidget {
   final VillageModel village;
   final VoidCallback onTap;
+  final Color accentColor;
+  final String? badge;
 
   const _VillageCard({
     required this.village,
     required this.onTap,
+    this.accentColor = Colors.purpleAccent,
+    this.badge,
   });
 
   @override
@@ -231,7 +423,7 @@ class _VillageCard extends StatelessWidget {
         color: Colors.grey[900],
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.purpleAccent.withOpacity(0.3),
+          color: accentColor.withValues(alpha: 0.3),
         ),
       ),
       child: Material(
@@ -248,16 +440,16 @@ class _VillageCard extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: Colors.purpleAccent.withOpacity(0.15),
+                    color: accentColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.location_city,
-                    color: Colors.purpleAccent,
+                    color: accentColor,
                     size: 24,
                     shadows: [
                       Shadow(
-                        color: Colors.purpleAccent.withOpacity(0.6),
+                        color: accentColor.withValues(alpha: 0.6),
                         blurRadius: 8,
                       ),
                     ],
@@ -270,15 +462,37 @@ class _VillageCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        village.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Text(
+                            village.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (badge != null) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: accentColor.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                badge!,
+                                style: TextStyle(
+                                  color: accentColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Row(
@@ -309,16 +523,16 @@ class _VillageCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.cyanAccent.withOpacity(0.1),
+                    color: Colors.cyanAccent.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: Colors.cyanAccent.withOpacity(0.3),
+                      color: Colors.cyanAccent.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.people,
                         size: 14,
                         color: Colors.cyanAccent,

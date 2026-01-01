@@ -192,4 +192,109 @@ class L10nKo extends L10n {
 
   @override
   String get leave => '나가기';
+
+  @override
+  String get membershipRequest => '주민 신청';
+
+  @override
+  String get membershipPending => '신청 중';
+
+  @override
+  String get membershipMember => '주민';
+
+  @override
+  String get membershipOwner => '이장';
+
+  @override
+  String get membershipRequestSent => '주민 신청을 보냈습니다';
+
+  @override
+  String get membershipAlreadyMember => '이미 주민입니다';
+
+  @override
+  String get membershipAlreadyRequested => '이미 신청 중입니다';
+
+  @override
+  String get membershipApprove => '승인';
+
+  @override
+  String get membershipReject => '거절';
+
+  @override
+  String get membershipRemove => '제명';
+
+  @override
+  String get membershipLeave => '주민 탈퇴';
+
+  @override
+  String get membershipLeaveConfirm => '정말 주민에서 탈퇴하시겠습니까?';
+
+  @override
+  String get membershipRequests => '가입 신청';
+
+  @override
+  String get membershipNoRequests => '대기 중인 신청이 없습니다';
+
+  @override
+  String get membershipApproved => '승인되었습니다';
+
+  @override
+  String get membershipRejected => '거절되었습니다';
+
+  @override
+  String get members => '주민';
+
+  @override
+  String memberCount(Object count) {
+    return '주민 $count명';
+  }
+
+  @override
+  String villageCapacityInfo(Object bonus, Object current, Object max) {
+    return '수용 인원: $current/$max명 (주민 +$bonus)';
+  }
+
+  @override
+  String get inviteMember => '주민 초대';
+
+  @override
+  String get invitationSent => '초대를 보냈습니다';
+
+  @override
+  String get invitationAlreadySent => '이미 초대를 보냈습니다';
+
+  @override
+  String get invitationReceived => '주민 초대가 왔습니다';
+
+  @override
+  String invitationFrom(Object name, Object village) {
+    return '$name님이 $village 주민으로 초대했습니다';
+  }
+
+  @override
+  String get invitationAccept => '수락';
+
+  @override
+  String get invitationDecline => '거절';
+
+  @override
+  String get invitationCancel => '초대 취소';
+
+  @override
+  String get invitationAccepted => '초대를 수락했습니다';
+
+  @override
+  String get invitationDeclined => '초대를 거절했습니다';
+
+  @override
+  String get invitationCancelled => '초대를 취소했습니다';
+
+  @override
+  String get myInvitations => '받은 초대';
+
+  @override
+  String get sentInvitations => '보낸 초대';
+
+  @override
+  String get noInvitations => '받은 초대가 없습니다';
 }

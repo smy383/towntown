@@ -192,4 +192,110 @@ class L10nEn extends L10n {
 
   @override
   String get leave => 'Leave';
+
+  @override
+  String get membershipRequest => 'Request Membership';
+
+  @override
+  String get membershipPending => 'Pending';
+
+  @override
+  String get membershipMember => 'Member';
+
+  @override
+  String get membershipOwner => 'Owner';
+
+  @override
+  String get membershipRequestSent => 'Membership request sent';
+
+  @override
+  String get membershipAlreadyMember => 'Already a member';
+
+  @override
+  String get membershipAlreadyRequested => 'Already requested';
+
+  @override
+  String get membershipApprove => 'Approve';
+
+  @override
+  String get membershipReject => 'Reject';
+
+  @override
+  String get membershipRemove => 'Remove';
+
+  @override
+  String get membershipLeave => 'Leave Membership';
+
+  @override
+  String get membershipLeaveConfirm =>
+      'Are you sure you want to leave this village?';
+
+  @override
+  String get membershipRequests => 'Join Requests';
+
+  @override
+  String get membershipNoRequests => 'No pending requests';
+
+  @override
+  String get membershipApproved => 'Approved';
+
+  @override
+  String get membershipRejected => 'Rejected';
+
+  @override
+  String get members => 'Members';
+
+  @override
+  String memberCount(Object count) {
+    return '$count members';
+  }
+
+  @override
+  String villageCapacityInfo(Object bonus, Object current, Object max) {
+    return 'Capacity: $current/$max (+$bonus from members)';
+  }
+
+  @override
+  String get inviteMember => 'Invite Member';
+
+  @override
+  String get invitationSent => 'Invitation sent';
+
+  @override
+  String get invitationAlreadySent => 'Already invited';
+
+  @override
+  String get invitationReceived => 'You have an invitation';
+
+  @override
+  String invitationFrom(Object name, Object village) {
+    return '$name invited you to join $village';
+  }
+
+  @override
+  String get invitationAccept => 'Accept';
+
+  @override
+  String get invitationDecline => 'Decline';
+
+  @override
+  String get invitationCancel => 'Cancel Invitation';
+
+  @override
+  String get invitationAccepted => 'Invitation accepted';
+
+  @override
+  String get invitationDeclined => 'Invitation declined';
+
+  @override
+  String get invitationCancelled => 'Invitation cancelled';
+
+  @override
+  String get myInvitations => 'My Invitations';
+
+  @override
+  String get sentInvitations => 'Sent Invitations';
+
+  @override
+  String get noInvitations => 'No invitations';
 }
