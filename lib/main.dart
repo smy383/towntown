@@ -2440,41 +2440,7 @@ class _VillageLandState extends State<VillageLand>
       },
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: GestureDetector(
-        onTapDown: (details) {
-          final tapPos = details.localPosition;
-          // 캐릭터 영역, 채팅창 영역, 나가기 버튼 영역 터치는 무시
-          if (characterRect.contains(tapPos) || chatInputRect.contains(tapPos) || exitButtonRect.contains(tapPos)) {
-            return;
-          }
-          _hideEditButton();
-          // 달리기 중이면 먼저 멈춤
-          if (_isRunningMode) {
-            _stopRunning();
-          }
-          _moveCharacter(tapPos, running: false);
-        },
-        onLongPressStart: (details) {
-          final tapPos = details.localPosition;
-          // 캐릭터 영역, 채팅창 영역, 나가기 버튼 영역 터치는 무시
-          if (characterRect.contains(tapPos) || chatInputRect.contains(tapPos) || exitButtonRect.contains(tapPos)) {
-            return;
-          }
-          _hideEditButton();
-          _startRunning(tapPos);
-        },
-        onLongPressMoveUpdate: (details) {
-          final tapPos = details.localPosition;
-          // 채팅창 영역은 무시
-          if (chatInputRect.contains(tapPos)) {
-            return;
-          }
-          _updateRunTarget(tapPos);
-        },
-        onLongPressEnd: (details) {
-          _stopRunning();
-        },
-        child: Stack(
+        body: Stack(
           children: [
             // 월드 배경 (그리드로 이동 확인용)
             Positioned(
@@ -2649,28 +2615,73 @@ class _VillageLandState extends State<VillageLand>
                 ),
               ),
 
+            // 배경 터치 영역 (캐릭터 이동용)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapDown: (details) {
+                  final tapPos = details.localPosition;
+                  // 캐릭터 영역, 채팅창 영역, 나가기 버튼 영역 터치는 무시
+                  if (characterRect.contains(tapPos) || chatInputRect.contains(tapPos) || exitButtonRect.contains(tapPos)) {
+                    return;
+                  }
+                  _hideEditButton();
+                  // 달리기 중이면 먼저 멈춤
+                  if (_isRunningMode) {
+                    _stopRunning();
+                  }
+                  _moveCharacter(tapPos, running: false);
+                },
+                onLongPressStart: (details) {
+                  final tapPos = details.localPosition;
+                  // 캐릭터 영역, 채팅창 영역, 나가기 버튼 영역 터치는 무시
+                  if (characterRect.contains(tapPos) || chatInputRect.contains(tapPos) || exitButtonRect.contains(tapPos)) {
+                    return;
+                  }
+                  _hideEditButton();
+                  _startRunning(tapPos);
+                },
+                onLongPressMoveUpdate: (details) {
+                  final tapPos = details.localPosition;
+                  // 채팅창 영역은 무시
+                  if (chatInputRect.contains(tapPos)) {
+                    return;
+                  }
+                  _updateRunTarget(tapPos);
+                },
+                onLongPressEnd: (details) {
+                  _stopRunning();
+                },
+                child: Container(color: Colors.transparent),
+              ),
+            ),
+
             // 나가기 버튼 (좌상단)
             Positioned(
               left: 16,
               top: MediaQuery.of(context).padding.top + 16,
-              child: GestureDetector(
-                onTap: () async {
-                  await _leaveVillage();
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                    size: 24,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () async {
+                    await _leaveVillage();
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),
@@ -2763,7 +2774,6 @@ class _VillageLandState extends State<VillageLand>
             ),
           ],
         ),
-      ),
       ),
     );
   }

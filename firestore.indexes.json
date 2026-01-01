@@ -1,0 +1,31 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "membershipRequests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "membershipInvitations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "inviteeId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "membershipInvitations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "villageId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

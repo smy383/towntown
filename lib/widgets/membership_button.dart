@@ -165,7 +165,9 @@ class _MembershipButtonState extends State<MembershipButton> {
           villageName: _village?.name ?? '',
         ),
       ),
-    ).then((_) => _loadStatus());
+    ).then((_) {
+      if (mounted) _loadStatus();
+    });
   }
 
   @override

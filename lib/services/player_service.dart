@@ -136,14 +136,14 @@ class PlayerService {
     required bool isMoving,
     required bool isRunning,
   }) async {
-    await _playersRef(villageId).doc(uid).update({
+    await _playersRef(villageId).doc(uid).set({
       'x': x,
       'y': y,
       'facingRight': facingRight,
       'isMoving': isMoving,
       'isRunning': isRunning,
       'lastSeen': FieldValue.serverTimestamp(),
-    });
+    }, SetOptions(merge: true));
   }
 
   /// 채팅 메시지 전송
@@ -152,11 +152,11 @@ class PlayerService {
     required String uid,
     required String message,
   }) async {
-    await _playersRef(villageId).doc(uid).update({
+    await _playersRef(villageId).doc(uid).set({
       'chatMessage': message,
       'chatTime': FieldValue.serverTimestamp(),
       'lastSeen': FieldValue.serverTimestamp(),
-    });
+    }, SetOptions(merge: true));
   }
 
   /// 채팅 메시지 삭제 (말풍선 사라짐)
@@ -164,10 +164,10 @@ class PlayerService {
     required String villageId,
     required String uid,
   }) async {
-    await _playersRef(villageId).doc(uid).update({
+    await _playersRef(villageId).doc(uid).set({
       'chatMessage': null,
       'chatTime': null,
-    });
+    }, SetOptions(merge: true));
   }
 
   /// 마을 퇴장 - 플레이어 상태 삭제
@@ -206,8 +206,8 @@ class PlayerService {
     required String villageId,
     required String uid,
   }) async {
-    await _playersRef(villageId).doc(uid).update({
+    await _playersRef(villageId).doc(uid).set({
       'lastSeen': FieldValue.serverTimestamp(),
-    });
+    }, SetOptions(merge: true));
   }
 }
