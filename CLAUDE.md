@@ -94,16 +94,31 @@ flutter build apk --debug
 
 ## Architecture
 
-Currently a single-file app (`lib/main.dart`) with all code in one place. As the app grows, it should follow this structure:
-
 ```
 lib/
-├── main.dart              # App entry point
-├── screens/               # Screen widgets
-├── widgets/               # Reusable widgets
-├── models/                # Data models
-├── services/              # Business logic
-└── utils/                 # Utility functions
+├── main.dart                    # App entry point (Firebase 초기화, 라우팅)
+├── firebase_options.dart        # Firebase 설정
+├── l10n/                        # 다국어 지원 (ko, en, ja)
+├── models/
+│   ├── user_model.dart
+│   └── village_model.dart       # 마을 데이터 모델
+├── providers/
+│   ├── auth_provider.dart       # 인증 상태 관리
+│   └── locale_provider.dart     # 언어 설정 관리
+├── screens/
+│   ├── auth_screen.dart         # 로그인 화면
+│   ├── main_navigation_screen.dart  # 메인 네비게이션 (4탭)
+│   ├── feed_screen.dart         # 피드 탭
+│   ├── search_screen.dart       # 검색 탭
+│   ├── town_screen.dart         # 마을 탭 (전체 마을 리스트)
+│   ├── my_village_screen.dart   # 내 마을 상세 화면
+│   ├── create_village_screen.dart   # 마을 생성 화면
+│   └── settings_screen.dart     # 설정 화면
+├── services/
+│   ├── auth_service.dart        # 인증 서비스
+│   └── village_service.dart     # 마을 CRUD 서비스
+└── widgets/
+    └── globe_widget.dart        # 지구본 위젯
 ```
 
 ## Key Components
@@ -119,8 +134,12 @@ lib/
 - Uses `AnimationController` for movement and walk cycle animations
 
 ### Screens
-- **CreateCharacterScreen**: Character name input with animated preview
-- **VillageLand**: Main game area with tap-to-move character control
+- **MainNavigationScreen**: 하단 4탭 네비게이션 (피드, 검색, 마을, 설정)
+- **TownScreen**: 전체 마을 리스트 (간단한 카드 형태)
+- **MyVillageScreen**: 내 마을 상세 정보 및 관리
+- **CreateVillageScreen**: 마을 생성 (이름 입력, 자동 위치 배정)
+- **CreateCharacterScreen**: Character name input with animated preview (미연결)
+- **VillageLand**: Main game area with tap-to-move character control (미연결)
 
 ## Technical Notes
 
@@ -132,17 +151,21 @@ lib/
 
 ## Current Implementation Status
 
+**현재 버전: 1.0.1**
+
 ### Completed
 - [x] Firebase 프로젝트 설정 (neontown)
 - [x] Google 로그인 (Android, iOS, Web)
 - [x] Cloud Firestore 설정 (asia-northeast3)
 - [x] 보안 규칙 (firestore.rules)
-- [x] HomeScreen (메인 메뉴)
+- [x] 메인 네비게이션 (4탭: 피드, 검색, 마을, 설정)
 - [x] 다국어 지원 (ko, en, ja)
 - [x] 언어 수동 선택 기능 (설정 메뉴)
 - [x] LocaleProvider (SharedPreferences 저장)
 - [x] 네온사인 스타일 타이틀 (NEON: 보라 / TOWN: 시안)
-- [x] 마을 생성 기능
+- [x] 마을 생성 기능 (자동 위치 배정)
+- [x] 마을 탭 - 전체 마을 리스트 (간단한 카드 UI)
+- [x] 내 마을 화면 (MyVillageScreen) 분리
 - [x] Firebase Hosting 배포 설정
 
 ### In Progress
@@ -150,9 +173,11 @@ lib/
 - [ ] Kakao 로그인 설정 (Kakao Developers 설정 필요)
 
 ### Pending
-- [ ] 마을 탐험 기능
-- [ ] 내 마을 기능
+- [ ] 마을 입장 기능 (마을 내부 탐험)
+- [ ] 마을 탐험 기능 (다른 마을 방문)
 - [ ] 캐릭터 생성 화면 연결
+- [ ] 피드 기능 (게시글 작성/조회)
+- [ ] 검색 기능 (마을/사용자 검색)
 - [ ] 프로필/내 정보 화면
 
 ## Firebase Configuration
