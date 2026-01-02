@@ -29,9 +29,14 @@ service cloud.firestore {
       allow create: if request.auth != null
                     && request.resource.data.ownerId == request.auth.uid;
 
-      // 수정/삭제: 마을 소유자만
-      allow update, delete: if request.auth != null
-                            && resource.data.ownerId == request.auth.uid;
+      // 삭제: 마을 소유자만
+      allow delete: if request.auth != null
+                    && resource.data.ownerId == request.auth.uid;
+
+      // 수정: 로그인한 사용자 (population, visitors 업데이트 허용)
+      // 단, ownerId는 변경 불가
+      allow update: if request.auth != null
+                    && request.resource.data.ownerId == resource.data.ownerId;
 
       // 플레이어 서브컬렉션 (마을 내 접속자)
       match /players/{playerId} {
