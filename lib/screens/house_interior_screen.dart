@@ -22,13 +22,13 @@ class HouseInteriorScreen extends StatefulWidget {
 
 class _HouseInteriorScreenState extends State<HouseInteriorScreen>
     with TickerProviderStateMixin {
-  // 내부 공간 크기
-  static const double roomWidth = 600;
-  static const double roomHeight = 500;
+  // 내부 공간 크기 (2배 확대)
+  static const double roomWidth = 1200;
+  static const double roomHeight = 1000;
 
-  // 캐릭터 위치 (문 앞에서 시작)
+  // 캐릭터 위치 (방 중앙에서 시작)
   double _charX = roomWidth / 2;
-  double _charY = roomHeight - 80;
+  double _charY = roomHeight / 2;
 
   // 이동 관련
   bool _isMoving = false;
@@ -41,9 +41,9 @@ class _HouseInteriorScreenState extends State<HouseInteriorScreen>
   AnimationController? _moveController;
   Animation<double>? _moveAnimation;
 
-  // 문 영역 (하단 중앙)
-  static const double doorWidth = 80;
-  static const double doorHeight = 100;
+  // 문 영역 (하단 중앙) - 2배 확대
+  static const double doorWidth = 160;
+  static const double doorHeight = 200;
   static const double doorX = (roomWidth - doorWidth) / 2;
   static const double doorY = roomHeight - doorHeight;
 
@@ -64,9 +64,9 @@ class _HouseInteriorScreenState extends State<HouseInteriorScreen>
   }
 
   void _moveCharacter(Offset target) {
-    // 경계 내로 제한
-    final targetX = target.dx.clamp(30.0, roomWidth - 30.0);
-    final targetY = target.dy.clamp(50.0, roomHeight - 50.0);
+    // 경계 내로 제한 (상단 벽 160 이하로는 이동 불가)
+    final targetX = target.dx.clamp(60.0, roomWidth - 60.0);
+    final targetY = target.dy.clamp(180.0, roomHeight - 100.0);
 
     // 현재 위치와 같으면 이동하지 않음
     if ((targetX - _charX).abs() < 1 && (targetY - _charY).abs() < 1) {
@@ -171,94 +171,65 @@ class _HouseInteriorScreenState extends State<HouseInteriorScreen>
             // 상단 바
             _buildTopBar(),
 
-            // 방 내부
+            // 방 내부 (캐릭터 중심 이동)
             Expanded(
-              child: Center(
-                child: GestureDetector(
-                  onTapDown: (details) {
-                    _moveCharacter(details.localPosition);
-                  },
-                  child: Container(
-                    width: roomWidth,
-                    height: roomHeight,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[850],
-                      border: Border.all(
-                        color: Colors.cyanAccent.withValues(alpha: 0.3),
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: Stack(
-                        children: [
-                          // 바닥
-                          CustomPaint(
-                            size: const Size(roomWidth, roomHeight),
-                            painter: _RoomFloorPainter(),
-                          ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final viewWidth = constraints.maxWidth;
+                  final viewHeight = constraints.maxHeight;
 
-                          // 문
-                          Positioned(
-                            left: doorX,
-                            top: doorY,
-                            child: _buildDoor(),
-                          ),
+                  return AnimatedBuilder(
+                    animation: _walkController,
+                    builder: (context, child) {
+                      // 캐릭터를 화면 중앙에 두기 위한 오프셋 (클램핑 적용)
+                      double offsetX = viewWidth / 2 - _charX;
+                      double offsetY = viewHeight / 2 - _charY;
 
-                          // 캐릭터
-                          Positioned(
-                            left: _charX - 30,
-                            top: _charY - 50,
-                            child: _buildCharacter(),
-                          ),
+                      // 카메라가 방 경계를 벗어나지 않도록 클램핑
+                      final maxOffsetX = 0.0;
+                      final minOffsetX = viewWidth - roomWidth;
+                      final maxOffsetY = 0.0;
+                      final minOffsetY = viewHeight - roomHeight;
 
-                          // 집 주인 표시
-                          Positioned(
-                            top: 16,
-                            left: 16,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: widget.house.isChiefHouse
-                                      ? Colors.orangeAccent
-                                      : Colors.cyanAccent,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.home,
-                                    size: 16,
-                                    color: widget.house.isChiefHouse
-                                        ? Colors.orangeAccent
-                                        : Colors.cyanAccent,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '${widget.house.ownerName}의 집',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                      offsetX = offsetX.clamp(minOffsetX, maxOffsetX);
+                      offsetY = offsetY.clamp(minOffsetY, maxOffsetY);
+
+                      // 캐릭터의 화면상 위치 계산
+                      final charScreenX = _charX + offsetX;
+                      final charScreenY = _charY + offsetY;
+
+                      return GestureDetector(
+                        onTapDown: (details) {
+                          // 탭 위치를 월드 좌표로 변환
+                          final worldX = details.localPosition.dx - offsetX;
+                          final worldY = details.localPosition.dy - offsetY;
+                          _moveCharacter(Offset(worldX, worldY));
+                        },
+                        child: CustomPaint(
+                          size: Size(viewWidth, viewHeight),
+                          painter: _RoomViewPainter(
+                            offsetX: offsetX,
+                            offsetY: offsetY,
+                            roomWidth: roomWidth,
+                            roomHeight: roomHeight,
+                            doorX: doorX,
+                            doorY: doorY,
+                            doorWidth: doorWidth,
+                            doorHeight: doorHeight,
+                            charX: charScreenX,
+                            charY: charScreenY,
+                            visitorStrokes: widget.visitorStrokes,
+                            isMoving: _isMoving,
+                            animationValue: _walkController.value,
+                            facingRight: _facingRight,
+                            ownerName: widget.house.ownerName,
+                            isChiefHouse: widget.house.isChiefHouse,
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -292,132 +263,69 @@ class _HouseInteriorScreenState extends State<HouseInteriorScreen>
     );
   }
 
-  Widget _buildDoor() {
-    return Container(
-      width: doorWidth,
-      height: doorHeight,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.brown[800]!,
-            Colors.brown[900]!,
-          ],
-        ),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(8),
-          topRight: Radius.circular(8),
-        ),
-        border: Border.all(
-          color: Colors.brown[600]!,
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.cyanAccent.withValues(alpha: 0.3),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.door_front_door,
-            color: Colors.brown[400],
-            size: 32,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '출구',
-            style: TextStyle(
-              color: Colors.brown[300],
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCharacter() {
-    return Column(
-      children: [
-        Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.diagonal3Values(_facingRight ? 1.0 : -1.0, 1.0, 1.0),
-          child: AnimatedBuilder(
-            animation: _walkController,
-            builder: (context, child) {
-              if (widget.visitorStrokes.isNotEmpty) {
-                // 마을과 동일한 CustomCharacterPainter 사용
-                return CustomPaint(
-                  size: const Size(60, 84), // 250:350 비율 유지
-                  painter: main_app.CustomCharacterPainter(
-                    strokes: widget.visitorStrokes,
-                    isMoving: _isMoving,
-                    animationValue: _walkController.value,
-                  ),
-                );
-              }
-              // 기본 스틱맨
-              return CustomPaint(
-                size: const Size(60, 84),
-                painter: _DefaultStickmanPainter(
-                  isMoving: _isMoving,
-                  animationValue: _walkController.value,
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          widget.visitorName,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 10,
-          ),
-        ),
-      ],
-    );
-  }
 }
 
-/// 방 바닥 그리기
-class _RoomFloorPainter extends CustomPainter {
+/// 방 전체 뷰 페인터 (캐릭터 중심 이동, 모바일 호환)
+class _RoomViewPainter extends CustomPainter {
+  final double offsetX;
+  final double offsetY;
+  final double roomWidth;
+  final double roomHeight;
+  final double doorX;
+  final double doorY;
+  final double doorWidth;
+  final double doorHeight;
+  final double charX;
+  final double charY;
+  final List<main_app.DrawingStroke> visitorStrokes;
+  final bool isMoving;
+  final double animationValue;
+  final bool facingRight;
+  final String ownerName;
+  final bool isChiefHouse;
+
+  _RoomViewPainter({
+    required this.offsetX,
+    required this.offsetY,
+    required this.roomWidth,
+    required this.roomHeight,
+    required this.doorX,
+    required this.doorY,
+    required this.doorWidth,
+    required this.doorHeight,
+    required this.charX,
+    required this.charY,
+    required this.visitorStrokes,
+    required this.isMoving,
+    required this.animationValue,
+    required this.facingRight,
+    required this.ownerName,
+    required this.isChiefHouse,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
-    // 바닥 타일 패턴
+    canvas.save();
+
+    // 방 오프셋 적용
+    canvas.translate(offsetX, offsetY);
+
+    // 바닥 타일
     final tilePaint = Paint()
       ..color = Colors.grey[800]!
       ..style = PaintingStyle.fill;
+    canvas.drawRect(Rect.fromLTWH(0, 0, roomWidth, roomHeight), tilePaint);
 
     final linePaint = Paint()
       ..color = Colors.grey[700]!
       ..strokeWidth = 1;
 
-    // 바닥 채우기
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), tilePaint);
-
-    // 타일 라인
-    const tileSize = 50.0;
-    for (double x = 0; x <= size.width; x += tileSize) {
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(x, size.height),
-        linePaint,
-      );
+    const tileSize = 100.0;
+    for (double x = 0; x <= roomWidth; x += tileSize) {
+      canvas.drawLine(Offset(x, 0), Offset(x, roomHeight), linePaint);
     }
-    for (double y = 0; y <= size.height; y += tileSize) {
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(size.width, y),
-        linePaint,
-      );
+    for (double y = 0; y <= roomHeight; y += tileSize) {
+      canvas.drawLine(Offset(0, y), Offset(roomWidth, y), linePaint);
     }
 
     // 벽 (상단)
@@ -425,91 +333,157 @@ class _RoomFloorPainter extends CustomPainter {
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [
-          Colors.grey[900]!,
-          Colors.grey[850]!,
-        ],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, 80));
-
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, 80), wallPaint);
+        colors: [Colors.grey[900]!, Colors.grey[850]!],
+      ).createShader(Rect.fromLTWH(0, 0, roomWidth, 160));
+    canvas.drawRect(Rect.fromLTWH(0, 0, roomWidth, 160), wallPaint);
 
     // 벽 하단 라인
     final wallLinePaint = Paint()
       ..color = Colors.cyanAccent.withValues(alpha: 0.3)
       ..strokeWidth = 2;
-    canvas.drawLine(
-      const Offset(0, 80),
-      Offset(size.width, 80),
-      wallLinePaint,
-    );
+    canvas.drawLine(const Offset(0, 160), Offset(roomWidth, 160), wallLinePaint);
+
+    // 문
+    _drawDoor(canvas);
+
+    // 집 주인 표시
+    _drawOwnerLabel(canvas);
+
+    canvas.restore();
+
+    // 캐릭터 (화면 좌표)
+    _drawCharacter(canvas, charX, charY);
   }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
+  void _drawDoor(Canvas canvas) {
+    final rect = Rect.fromLTWH(doorX, doorY, doorWidth, doorHeight);
 
-/// 기본 스틱맨 페인터
-class _DefaultStickmanPainter extends CustomPainter {
-  final bool isMoving;
-  final double animationValue;
+    // 문 배경
+    final doorPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Colors.brown[800]!, Colors.brown[900]!],
+      ).createShader(rect);
 
-  _DefaultStickmanPainter({
-    required this.isMoving,
-    required this.animationValue,
-  });
+    final rrect = RRect.fromRectAndCorners(
+      rect,
+      topLeft: const Radius.circular(8),
+      topRight: const Radius.circular(8),
+    );
+    canvas.drawRRect(rrect, doorPaint);
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round
+    // 문 테두리
+    final borderPaint = Paint()
+      ..color = Colors.brown[600]!
+      ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
+    canvas.drawRRect(rrect, borderPaint);
 
-    final centerX = size.width / 2;
+    // 글로우
+    final glowPaint = Paint()
+      ..color = Colors.cyanAccent.withValues(alpha: 0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+    canvas.drawRRect(rrect, glowPaint);
 
-    // 머리
-    canvas.drawCircle(Offset(centerX, 15), 12, paint);
-
-    // 몸통
-    canvas.drawLine(
-      Offset(centerX, 27),
-      Offset(centerX, 55),
-      paint,
+    // 출구 텍스트
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: '🚪 출구',
+        style: TextStyle(fontSize: 16, color: Colors.brown[300]),
+      ),
+      textDirection: TextDirection.ltr,
     );
-
-    // 걷기 애니메이션
-    final legSwing = isMoving ? sin(animationValue * 2 * pi) * 15 : 0;
-    final armSwing = isMoving ? sin(animationValue * 2 * pi) * 10 : 0;
-
-    // 팔
-    canvas.drawLine(
-      Offset(centerX, 35),
-      Offset(centerX - 15 + armSwing, 50),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(centerX, 35),
-      Offset(centerX + 15 - armSwing, 50),
-      paint,
-    );
-
-    // 다리
-    canvas.drawLine(
-      Offset(centerX, 55),
-      Offset(centerX - 12 + legSwing, 85),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(centerX, 55),
-      Offset(centerX + 12 - legSwing, 85),
-      paint,
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(
+        doorX + (doorWidth - textPainter.width) / 2,
+        doorY + (doorHeight - textPainter.height) / 2,
+      ),
     );
   }
 
+  void _drawOwnerLabel(Canvas canvas) {
+    final labelColor = isChiefHouse ? Colors.orangeAccent : Colors.cyanAccent;
+
+    // 배경
+    final bgPaint = Paint()..color = Colors.black54;
+    final bgRect = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(16, 16, 150, 32),
+      const Radius.circular(16),
+    );
+    canvas.drawRRect(bgRect, bgPaint);
+
+    // 테두리
+    final borderPaint = Paint()
+      ..color = labelColor
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+    canvas.drawRRect(bgRect, borderPaint);
+
+    // 텍스트
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: '🏠 $ownerName의 집',
+        style: const TextStyle(
+          fontSize: 12,
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, const Offset(26, 22));
+  }
+
+  void _drawCharacter(Canvas canvas, double x, double y) {
+    canvas.save();
+    canvas.translate(x, y);
+
+    // 좌우 반전
+    if (!facingRight) {
+      canvas.scale(-1, 1);
+    }
+
+    // 캐릭터 크기: 60x84 (250:350 비율)
+    const charWidth = 60.0;
+    const charHeight = 84.0;
+
+    canvas.translate(-charWidth / 2, -charHeight / 2);
+
+    if (visitorStrokes.isNotEmpty) {
+      // main.dart의 CustomCharacterPainter를 직접 사용하여 마을과 동일한 애니메이션 적용
+      final characterPainter = main_app.CustomCharacterPainter(
+        strokes: visitorStrokes,
+        originalSize: const Size(250, 350),
+        animationValue: animationValue,
+        isMoving: isMoving,
+        isRunning: false, // 집 안에서는 달리기 없음
+      );
+      characterPainter.paint(canvas, const Size(charWidth, charHeight));
+    } else {
+      // 기본 스틱맨 - 마을과 동일한 StickmanPainter 사용
+      final stickmanPainter = main_app.StickmanPainter(
+        animationValue: animationValue,
+        isMoving: isMoving,
+        isRunning: false,
+      );
+      stickmanPainter.paint(canvas, const Size(charWidth, charHeight));
+    }
+
+    canvas.restore();
+  }
+
   @override
-  bool shouldRepaint(covariant _DefaultStickmanPainter oldDelegate) {
-    return oldDelegate.isMoving != isMoving ||
-        oldDelegate.animationValue != animationValue;
+  bool shouldRepaint(covariant _RoomViewPainter oldDelegate) {
+    return oldDelegate.offsetX != offsetX ||
+        oldDelegate.offsetY != offsetY ||
+        oldDelegate.charX != charX ||
+        oldDelegate.charY != charY ||
+        oldDelegate.isMoving != isMoving ||
+        oldDelegate.animationValue != animationValue ||
+        oldDelegate.facingRight != facingRight;
   }
 }
