@@ -15,6 +15,8 @@ import 'screens/main_navigation_screen.dart';
 import 'services/village_service.dart';
 import 'services/player_service.dart';
 import 'widgets/membership_button.dart';
+import 'models/house_model.dart';
+import 'screens/house_interior_screen.dart';
 import 'dart:async';
 
 void main() async {
@@ -1647,12 +1649,14 @@ class CustomCharacterPainter extends CustomPainter {
 /// 마을 토지
 class VillageLand extends StatefulWidget {
   final String? villageId;
+  final String? villageName;
   final String characterName;
   final List<DrawingStroke> characterStrokes;
 
   const VillageLand({
     super.key,
     this.villageId,
+    this.villageName,
     required this.characterName,
     required this.characterStrokes,
   });
@@ -1717,6 +1721,11 @@ class _VillageLandState extends State<VillageLand>
   DateTime? _speechBubbleTime;
   bool _isSpeechBubblePinned = false; // 말풍선 고정 여부
 
+  // 집 관련
+  List<HouseModel> _houses = [];
+  StreamSubscription<List<HouseModel>>? _housesSubscription;
+  HouseModel? _houseAtDoor; // 현재 문 앞에 있는 집
+
   @override
   void initState() {
     super.initState();
@@ -1729,6 +1738,24 @@ class _VillageLandState extends State<VillageLand>
 
     // 멀티플레이어 초기화
     _initMultiplayer();
+
+    // 집 로드
+    _loadHouses();
+  }
+
+  /// 집 데이터 로드
+  void _loadHouses() {
+    final villageId = widget.villageId;
+    if (villageId == null) return;
+
+    // 실시간 집 스트림 구독
+    _housesSubscription = _villageService.housesStream(villageId).listen((houses) {
+      if (mounted) {
+        setState(() {
+          _houses = houses;
+        });
+      }
+    });
   }
 
   /// 멀티플레이어 시스템 초기화
@@ -1826,6 +1853,9 @@ class _VillageLandState extends State<VillageLand>
     _playersSubscription?.cancel();
     _positionUpdateTimer?.cancel();
     _heartbeatTimer?.cancel();
+
+    // 집 스트림 정리
+    _housesSubscription?.cancel();
 
     _moveController?.dispose();
     _walkController.dispose();
@@ -2146,24 +2176,129 @@ class _VillageLandState extends State<VillageLand>
     );
   }
 
+  /// 특정 위치가 집 내부인지 확인 (문 영역 제외)
+  bool _isPositionBlockedByHouse(double x, double y) {
+    for (final house in _houses) {
+      // 집 경계
+      final houseLeft = house.x - house.width / 2;
+      final houseRight = house.x + house.width / 2;
+      final houseTop = house.y - house.height / 2;
+      final houseBottom = house.y + house.height / 2;
+
+      // 위치가 집 내부인지 확인
+      if (x >= houseLeft && x <= houseRight && y >= houseTop && y <= houseBottom) {
+        // 문 영역 확인 (하단 중앙)
+        final doorCenterX = house.x + (house.doorX - 0.5) * house.width;
+        final doorLeft = doorCenterX - house.doorWidth / 2;
+        final doorRight = doorCenterX + house.doorWidth / 2;
+        final doorTop = houseBottom - house.doorHeight;
+        final doorBottom = houseBottom;
+
+        // 문 영역 안이면 통과 가능
+        if (x >= doorLeft && x <= doorRight && y >= doorTop && y <= doorBottom) {
+          return false; // 문이므로 막히지 않음
+        }
+
+        // 집 내부이고 문이 아니면 막힘
+        return true;
+      }
+    }
+    return false; // 어떤 집에도 해당되지 않음
+  }
+
+  /// 시작점에서 끝점까지 직선 경로에 장애물이 있는지 확인
+  Offset? _findBlockedPosition(double startX, double startY, double endX, double endY) {
+    const steps = 20; // 경로를 나눌 단계 수
+    final dx = endX - startX;
+    final dy = endY - startY;
+
+    for (int i = 1; i <= steps; i++) {
+      final t = i / steps;
+      final checkX = startX + dx * t;
+      final checkY = startY + dy * t;
+
+      if (_isPositionBlockedByHouse(checkX, checkY)) {
+        // 이전 위치(막히지 않은 마지막 위치) 반환
+        final prevT = (i - 1) / steps;
+        return Offset(startX + dx * prevT, startY + dy * prevT);
+      }
+    }
+    return null; // 막히지 않음
+  }
+
+  /// 캐릭터가 어떤 집의 문 앞에 있는지 확인
+  HouseModel? _getHouseAtDoor(double x, double y) {
+    for (final house in _houses) {
+      // 문 영역 계산 (문 앞 일정 범위)
+      final doorCenterX = house.x + (house.doorX - 0.5) * house.width;
+      final doorLeft = doorCenterX - house.doorWidth / 2 - 20; // 여유 공간
+      final doorRight = doorCenterX + house.doorWidth / 2 + 20;
+      final houseBottom = house.y + house.height / 2;
+      final doorTop = houseBottom - house.doorHeight - 20;
+      final doorBottom = houseBottom + 30; // 문 앞쪽까지 포함
+
+      if (x >= doorLeft && x <= doorRight && y >= doorTop && y <= doorBottom) {
+        return house;
+      }
+    }
+    return null;
+  }
+
+  /// 문 앞 체크 업데이트
+  void _updateHouseAtDoor() {
+    final house = _getHouseAtDoor(_worldX, _worldY);
+    if (house != _houseAtDoor) {
+      setState(() {
+        _houseAtDoor = house;
+      });
+    }
+  }
+
+  /// 집 입장
+  void _enterHouse(HouseModel house) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HouseInteriorScreen(
+          house: house,
+          visitorName: _characterName,
+          visitorStrokes: _characterStrokes,
+        ),
+      ),
+    );
+  }
+
   void _moveCharacter(Offset screenTarget, {bool running = false}) {
     // 화면 좌표를 월드 좌표로 변환
     final worldTarget = _screenToWorld(screenTarget);
 
     // 월드 경계 내로 제한
-    final clampedX = worldTarget.dx.clamp(30.0, worldWidth - 30.0);
-    final clampedY = worldTarget.dy.clamp(50.0, worldHeight - 50.0);
+    var targetX = worldTarget.dx.clamp(30.0, worldWidth - 30.0);
+    var targetY = worldTarget.dy.clamp(50.0, worldHeight - 50.0);
+
+    // 경로에 장애물이 있는지 확인
+    final blockedPos = _findBlockedPosition(_worldX, _worldY, targetX, targetY);
+    if (blockedPos != null) {
+      // 장애물 직전까지만 이동
+      targetX = blockedPos.dx;
+      targetY = blockedPos.dy;
+    }
+
+    // 현재 위치와 같으면 이동하지 않음
+    if ((targetX - _worldX).abs() < 1 && (targetY - _worldY).abs() < 1) {
+      return;
+    }
 
     setState(() {
       _isMoving = true;
       _isRunning = running;
-      _facingRight = clampedX > _worldX;
+      _facingRight = targetX > _worldX;
     });
 
     _startWorldX = _worldX;
     _startWorldY = _worldY;
-    _targetWorldX = clampedX;
-    _targetWorldY = clampedY;
+    _targetWorldX = targetX;
+    _targetWorldY = targetY;
 
     final distance = sqrt(
       pow(_targetWorldX - _startWorldX, 2) + pow(_targetWorldY - _startWorldY, 2),
@@ -2195,6 +2330,8 @@ class _VillageLandState extends State<VillageLand>
         });
         _walkController.stop();
         _walkController.reset();
+        // 문 앞 체크
+        _updateHouseAtDoor();
       }
     });
 
@@ -2276,8 +2413,24 @@ class _VillageLandState extends State<VillageLand>
     final dirY = dy / distance;
 
     // 새 월드 좌표 계산
-    final newWorldX = (_worldX + dirX * moveDistance).clamp(30.0, worldWidth - 30.0);
-    final newWorldY = (_worldY + dirY * moveDistance).clamp(50.0, worldHeight - 50.0);
+    var newWorldX = (_worldX + dirX * moveDistance).clamp(30.0, worldWidth - 30.0);
+    var newWorldY = (_worldY + dirY * moveDistance).clamp(50.0, worldHeight - 50.0);
+
+    // 충돌 감지 - 새 위치가 막혀있으면 이동하지 않음
+    if (_isPositionBlockedByHouse(newWorldX, newWorldY)) {
+      // X축 또는 Y축만 이동 시도 (벽 타기)
+      final xOnlyBlocked = _isPositionBlockedByHouse(newWorldX, _worldY);
+      final yOnlyBlocked = _isPositionBlockedByHouse(_worldX, newWorldY);
+
+      if (!xOnlyBlocked) {
+        newWorldY = _worldY; // Y는 유지, X만 이동
+      } else if (!yOnlyBlocked) {
+        newWorldX = _worldX; // X는 유지, Y만 이동
+      } else {
+        // 둘 다 막혀있으면 이동 안 함
+        return;
+      }
+    }
 
     setState(() {
       _worldX = newWorldX;
@@ -2324,6 +2477,61 @@ class _VillageLandState extends State<VillageLand>
   }
 
   /// 다른 플레이어 위젯 빌드
+  /// 집 위젯 빌드
+  Widget _buildHouse(HouseModel house, Offset camera) {
+    // 집의 화면 좌표 계산 (월드 좌표에서 집 크기의 절반을 빼서 중앙 기준으로)
+    final screenX = house.x - camera.dx - house.width / 2;
+    final screenY = house.y - camera.dy - house.height / 2;
+
+    // HouseModel의 DrawingStroke를 main.dart의 DrawingStroke로 변환
+    final convertedStrokes = house.strokes.map((stroke) {
+      return DrawingStroke(
+        points: stroke.points,
+        color: stroke.color,
+        strokeWidth: stroke.strokeWidth,
+      );
+    }).toList();
+
+    return Positioned(
+      left: screenX,
+      top: screenY,
+      child: IgnorePointer(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 집 그리기
+            CustomPaint(
+              size: Size(house.width, house.height),
+              painter: HousePainter(
+                strokes: convertedStrokes,
+                originalSize: const Size(HouseModel.canvasWidth, HouseModel.canvasHeight),
+              ),
+            ),
+            // 주인 이름
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: house.isChiefHouse
+                    ? Colors.orangeAccent.withValues(alpha: 0.8)
+                    : Colors.black54,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                house.ownerName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildOtherPlayer(PlayerState player, Offset camera) {
     // 플레이어의 화면 좌표 계산
     final screenX = player.x - camera.dx - 30;
@@ -2347,76 +2555,78 @@ class _VillageLandState extends State<VillageLand>
     return Positioned(
       left: screenX,
       top: screenY,
-      child: Column(
-        children: [
-          // 다른 플레이어 캐릭터
-          Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.identity()
-              ..scale(player.facingRight ? 1.0 : -1.0, 1.0),
-            child: strokes.isNotEmpty
-                ? CustomPaint(
-                    size: const Size(60, 100),
-                    painter: CustomCharacterPainter(
-                      strokes: strokes,
-                      animationValue: 0,
-                      isMoving: player.isMoving,
-                      isRunning: player.isRunning,
+      child: IgnorePointer(
+        child: Column(
+          children: [
+            // 다른 플레이어 캐릭터
+            Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..scale(player.facingRight ? 1.0 : -1.0, 1.0),
+              child: strokes.isNotEmpty
+                  ? CustomPaint(
+                      size: const Size(60, 100),
+                      painter: CustomCharacterPainter(
+                        strokes: strokes,
+                        animationValue: 0,
+                        isMoving: player.isMoving,
+                        isRunning: player.isRunning,
+                      ),
+                    )
+                  : CustomPaint(
+                      size: const Size(60, 100),
+                      painter: StickmanPainter(
+                        animationValue: 0,
+                        isMoving: player.isMoving,
+                        isRunning: player.isRunning,
+                      ),
                     ),
-                  )
-                : CustomPaint(
-                    size: const Size(60, 100),
-                    painter: StickmanPainter(
-                      animationValue: 0,
-                      isMoving: player.isMoving,
-                      isRunning: player.isRunning,
-                    ),
-                  ),
-          ),
-          // 이름
-          Container(
-            margin: const EdgeInsets.only(top: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(
-              player.characterName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          // 말풍선 (있으면)
-          if (player.chatMessage != null && player.chatMessage!.isNotEmpty)
+            // 이름
             Container(
               margin: const EdgeInsets.only(top: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              constraints: const BoxConstraints(maxWidth: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                player.chatMessage!,
+                player.characterName,
                 style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 12,
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
-        ],
+            // 말풍선 (있으면)
+            if (player.chatMessage != null && player.chatMessage!.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                constraints: const BoxConstraints(maxWidth: 150),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  player.chatMessage!,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -2510,6 +2720,9 @@ class _VillageLandState extends State<VillageLand>
                 child: Container(color: Colors.transparent),
               ),
             ),
+
+            // 집들
+            ..._houses.map((house) => _buildHouse(house, camera)),
 
             // 다른 플레이어들
             ..._otherPlayers.map((player) => _buildOtherPlayer(player, camera)),
@@ -2605,6 +2818,53 @@ class _VillageLandState extends State<VillageLand>
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+              ),
+
+            // 집 입장 버튼 (문 앞에 있을 때)
+            if (_houseAtDoor != null)
+              Positioned(
+                left: charScreenPos.dx + 30,
+                top: charScreenPos.dy - 60,
+                child: FractionalTranslation(
+                  translation: const Offset(-0.5, 0),
+                  child: GestureDetector(
+                    onTap: () => _enterHouse(_houseAtDoor!),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.cyanAccent.withValues(alpha: 0.8),
+                            Colors.blueAccent.withValues(alpha: 0.8),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.cyanAccent.withValues(alpha: 0.5),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.door_front_door, color: Colors.white, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${_houseAtDoor!.ownerName}의 집 입장',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -2794,6 +3054,80 @@ class _VillageLandState extends State<VillageLand>
         ),
       ),
     );
+  }
+}
+
+/// 집 그리기 Painter
+class HousePainter extends CustomPainter {
+  final List<DrawingStroke> strokes;
+  final Size originalSize;
+
+  HousePainter({
+    required this.strokes,
+    this.originalSize = const Size(300, 240),
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 스케일 계산 (원본 캔버스 크기 -> 렌더 크기)
+    final scaleX = size.width / originalSize.width;
+    final scaleY = size.height / originalSize.height;
+    final scale = min(scaleX, scaleY);
+
+    // 중앙 정렬을 위한 오프셋
+    final offsetX = (size.width - originalSize.width * scale) / 2;
+    final offsetY = (size.height - originalSize.height * scale) / 2;
+
+    canvas.save();
+    canvas.translate(offsetX, offsetY);
+    canvas.scale(scale);
+
+    // 스트로크 그리기
+    for (final stroke in strokes) {
+      _drawStroke(canvas, stroke.points, stroke.color, stroke.strokeWidth);
+    }
+
+    canvas.restore();
+  }
+
+  void _drawStroke(Canvas canvas, List<Offset> points, Color color, double width) {
+    if (points.isEmpty) return;
+
+    final path = Path();
+    path.moveTo(points.first.dx, points.first.dy);
+
+    for (int i = 1; i < points.length; i++) {
+      path.lineTo(points[i].dx, points[i].dy);
+    }
+
+    // 네온 글로우 효과
+    final isBlack = color == Colors.black;
+    final glowColor = isBlack ? Colors.white : color;
+
+    for (int i = 3; i >= 1; i--) {
+      final glowPaint = Paint()
+        ..color = glowColor.withValues(alpha: isBlack ? 0.2 : 0.3)
+        ..strokeWidth = width + (i * 4)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, i * 2.0);
+      canvas.drawPath(path, glowPaint);
+    }
+
+    // 코어 스트로크
+    final corePaint = Paint()
+      ..color = color
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+    canvas.drawPath(path, corePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant HousePainter oldDelegate) {
+    return true;
   }
 }
 

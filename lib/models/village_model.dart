@@ -10,6 +10,12 @@ enum SectorType {
   reserved,    // 시스템 예약
 }
 
+/// 마을 상태
+enum VillageStatus {
+  draft,      // 미완성 (이장의 집 미완료)
+  published,  // 완성 (공개 가능)
+}
+
 /// 마을 모델
 class VillageModel {
   final String id;           // 마을 고유 ID (예: "NT-7X2K9M")
@@ -24,6 +30,7 @@ class VillageModel {
   final List<String> visitors;  // 현재 마을에 접속 중인 사용자 UID 목록
   final List<String> members;   // 주민 UID 목록 (이장 승인 받은 사람들)
   final String? description; // 마을 설명
+  final VillageStatus status;  // 마을 상태 (draft/published)
 
   VillageModel({
     required this.id,
@@ -38,6 +45,7 @@ class VillageModel {
     this.visitors = const [],
     this.members = const [],
     this.description,
+    this.status = VillageStatus.draft,
   });
 
   /// 기본 수용 인원
@@ -105,6 +113,11 @@ class VillageModel {
       visitors: List<String>.from(data['visitors'] ?? data['residents'] ?? []),
       members: List<String>.from(data['members'] ?? []),
       description: data['description'],
+      // 기존 마을은 published로 처리 (하위 호환성)
+      status: VillageStatus.values.firstWhere(
+        (e) => e.name == data['status'],
+        orElse: () => VillageStatus.published,
+      ),
     );
   }
 
@@ -121,6 +134,7 @@ class VillageModel {
       'visitors': visitors,
       'members': members,
       'description': description,
+      'status': status.name,
     };
   }
 
@@ -137,6 +151,7 @@ class VillageModel {
     List<String>? visitors,
     List<String>? members,
     String? description,
+    VillageStatus? status,
   }) {
     return VillageModel(
       id: id ?? this.id,
@@ -151,8 +166,15 @@ class VillageModel {
       visitors: visitors ?? this.visitors,
       members: members ?? this.members,
       description: description ?? this.description,
+      status: status ?? this.status,
     );
   }
+
+  /// 마을이 완성됐는지 확인
+  bool get isPublished => status == VillageStatus.published;
+
+  /// 마을이 미완성인지 확인
+  bool get isDraft => status == VillageStatus.draft;
 }
 
 /// 주민 가입 신청 상태

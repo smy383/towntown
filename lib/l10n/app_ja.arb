@@ -93,5 +93,17 @@
   "invitationCancelled": "招待をキャンセルしました",
   "myInvitations": "受け取った招待",
   "sentInvitations": "送った招待",
-  "noInvitations": "招待がありません"
+  "noInvitations": "招待がありません",
+  "selectHouseLocation": "家の位置を選択してください",
+  "buildHouseHere": "ここに家を建てる",
+  "drawYourHouse": "家を描いてください",
+  "doorGuide": "ドアの位置",
+  "completeHouse": "家を完成",
+  "villageDraft": "未完成",
+  "chiefHouse": "村長の家",
+  "houseBuilding": "家を建てています...",
+  "houseSaved": "家が完成しました!",
+  "villagePublished": "村が公開されました!",
+  "tapToPlaceHouse": "タップして家の位置を決めてください",
+  "changeLocation": "位置を変更"
 }

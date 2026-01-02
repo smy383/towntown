@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../services/village_service.dart';
 import '../models/village_model.dart';
 import 'create_village_screen.dart';
+import 'village_map_screen.dart';
 import '../main.dart' show CreateCharacterScreen, VillageLand, DrawingStroke;
 
 class MyVillageScreen extends StatefulWidget {
@@ -74,6 +75,23 @@ class _MyVillageScreenState extends State<MyVillageScreen> {
       return;
     }
 
+    // 이장인 경우 집 확인
+    if (_myVillage!.ownerId == userId) {
+      final hasChiefHouse = await _villageService.hasChiefHouse(_myVillage!.id);
+      if (!mounted) return;
+
+      if (!hasChiefHouse) {
+        // 이장 집이 없으면 집 짓기 화면으로
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VillageMapScreen(village: _myVillage!),
+          ),
+        );
+        return;
+      }
+    }
+
     // 마을 진입 시도
     final entryResult = await _villageService.enterVillage(
       villageId: _myVillage!.id,
@@ -134,6 +152,7 @@ class _MyVillageScreenState extends State<MyVillageScreen> {
         MaterialPageRoute(
           builder: (context) => VillageLand(
             villageId: _myVillage!.id,
+            villageName: _myVillage!.name,
             characterName: characterName,
             characterStrokes: characterStrokes,
           ),

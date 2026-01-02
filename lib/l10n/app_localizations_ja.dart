@@ -297,4 +297,40 @@ class L10nJa extends L10n {
 
   @override
   String get noInvitations => '招待がありません';
+
+  @override
+  String get selectHouseLocation => '家の位置を選択してください';
+
+  @override
+  String get buildHouseHere => 'ここに家を建てる';
+
+  @override
+  String get drawYourHouse => '家を描いてください';
+
+  @override
+  String get doorGuide => 'ドアの位置';
+
+  @override
+  String get completeHouse => '家を完成';
+
+  @override
+  String get villageDraft => '未完成';
+
+  @override
+  String get chiefHouse => '村長の家';
+
+  @override
+  String get houseBuilding => '家を建てています...';
+
+  @override
+  String get houseSaved => '家が完成しました!';
+
+  @override
+  String get villagePublished => '村が公開されました!';
+
+  @override
+  String get tapToPlaceHouse => 'タップして家の位置を決めてください';
+
+  @override
+  String get changeLocation => '位置を変更';
 }

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/village_model.dart';
+import '../models/house_model.dart';
 
 class VillageService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -676,6 +677,102 @@ class VillageService {
     return snapshot.docs
         .map((doc) => MembershipInvitation.fromFirestore(doc))
         .toList();
+  }
+
+  // ============================================================
+  // 집 관리 메서드
+  // ============================================================
+
+  /// 이장 집 저장 및 마을 공개
+  Future<void> saveChiefHouse({
+    required String villageId,
+    required HouseModel house,
+  }) async {
+    final villageRef = _firestore.collection('villages').doc(villageId);
+    final housesRef = villageRef.collection('houses');
+
+    await _firestore.runTransaction((transaction) async {
+      // 마을 문서 가져오기
+      final villageDoc = await transaction.get(villageRef);
+      if (!villageDoc.exists) {
+        throw Exception('마을을 찾을 수 없습니다.');
+      }
+
+      // 집 ID 생성
+      final houseDocRef = housesRef.doc();
+      final houseWithId = house.copyWith(id: houseDocRef.id);
+
+      // 집 저장
+      transaction.set(houseDocRef, houseWithId.toFirestore());
+
+      // 마을 상태를 published로 변경
+      transaction.update(villageRef, {
+        'status': VillageStatus.published.name,
+      });
+    });
+  }
+
+  /// 마을의 모든 집 조회
+  Future<List<HouseModel>> getHouses(String villageId) async {
+    final snapshot = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('houses')
+        .get();
+
+    return snapshot.docs
+        .map((doc) => HouseModel.fromFirestore(doc))
+        .toList();
+  }
+
+  /// 마을의 집 스트림 (실시간 업데이트)
+  Stream<List<HouseModel>> housesStream(String villageId) {
+    return _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('houses')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => HouseModel.fromFirestore(doc))
+            .toList());
+  }
+
+  /// 공개된 마을만 조회 (다른 사용자에게 보여줄 목록)
+  /// 기존 마을(status 필드 없음)도 published로 취급
+  Future<List<VillageModel>> getPublishedVillages() async {
+    final snapshot = await _firestore
+        .collection('villages')
+        .get();
+
+    // status가 없거나 published인 마을만 반환
+    return snapshot.docs
+        .map((doc) => VillageModel.fromFirestore(doc))
+        .where((village) => village.isPublished)
+        .toList();
+  }
+
+  /// 마을 상태 변경
+  Future<void> updateVillageStatus({
+    required String villageId,
+    required VillageStatus status,
+  }) async {
+    await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .update({'status': status.name});
+  }
+
+  /// 이장의 집이 있는지 확인
+  Future<bool> hasChiefHouse(String villageId) async {
+    final snapshot = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('houses')
+        .where('isChiefHouse', isEqualTo: true)
+        .limit(1)
+        .get();
+
+    return snapshot.docs.isNotEmpty;
   }
 }
 

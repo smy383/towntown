@@ -93,5 +93,17 @@
   "invitationCancelled": "초대를 취소했습니다",
   "myInvitations": "받은 초대",
   "sentInvitations": "보낸 초대",
-  "noInvitations": "받은 초대가 없습니다"
+  "noInvitations": "받은 초대가 없습니다",
+  "selectHouseLocation": "집 위치를 선택하세요",
+  "buildHouseHere": "여기에 집 짓기",
+  "drawYourHouse": "집을 그려주세요",
+  "doorGuide": "문 위치",
+  "completeHouse": "집 완성",
+  "villageDraft": "미완성",
+  "chiefHouse": "이장의 집",
+  "houseBuilding": "집을 짓는 중...",
+  "houseSaved": "집이 완성되었습니다!",
+  "villagePublished": "마을이 공개되었습니다!",
+  "tapToPlaceHouse": "화면을 탭해서 집 위치를 정하세요",
+  "changeLocation": "위치 변경"
 }

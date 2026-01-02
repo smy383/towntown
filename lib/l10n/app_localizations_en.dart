@@ -298,4 +298,40 @@ class L10nEn extends L10n {
 
   @override
   String get noInvitations => 'No invitations';
+
+  @override
+  String get selectHouseLocation => 'Select house location';
+
+  @override
+  String get buildHouseHere => 'Build house here';
+
+  @override
+  String get drawYourHouse => 'Draw your house';
+
+  @override
+  String get doorGuide => 'Door position';
+
+  @override
+  String get completeHouse => 'Complete house';
+
+  @override
+  String get villageDraft => 'Draft';
+
+  @override
+  String get chiefHouse => 'Chief\'s House';
+
+  @override
+  String get houseBuilding => 'Building house...';
+
+  @override
+  String get houseSaved => 'House completed!';
+
+  @override
+  String get villagePublished => 'Village published!';
+
+  @override
+  String get tapToPlaceHouse => 'Tap to place your house';
+
+  @override
+  String get changeLocation => 'Change location';
 }

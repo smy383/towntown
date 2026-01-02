@@ -93,5 +93,17 @@
   "invitationCancelled": "Invitation cancelled",
   "myInvitations": "My Invitations",
   "sentInvitations": "Sent Invitations",
-  "noInvitations": "No invitations"
+  "noInvitations": "No invitations",
+  "selectHouseLocation": "Select house location",
+  "buildHouseHere": "Build house here",
+  "drawYourHouse": "Draw your house",
+  "doorGuide": "Door position",
+  "completeHouse": "Complete house",
+  "villageDraft": "Draft",
+  "chiefHouse": "Chief's House",
+  "houseBuilding": "Building house...",
+  "houseSaved": "House completed!",
+  "villagePublished": "Village published!",
+  "tapToPlaceHouse": "Tap to place your house",
+  "changeLocation": "Change location"
 }

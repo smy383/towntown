@@ -297,4 +297,40 @@ class L10nKo extends L10n {
 
   @override
   String get noInvitations => '받은 초대가 없습니다';
+
+  @override
+  String get selectHouseLocation => '집 위치를 선택하세요';
+
+  @override
+  String get buildHouseHere => '여기에 집 짓기';
+
+  @override
+  String get drawYourHouse => '집을 그려주세요';
+
+  @override
+  String get doorGuide => '문 위치';
+
+  @override
+  String get completeHouse => '집 완성';
+
+  @override
+  String get villageDraft => '미완성';
+
+  @override
+  String get chiefHouse => '이장의 집';
+
+  @override
+  String get houseBuilding => '집을 짓는 중...';
+
+  @override
+  String get houseSaved => '집이 완성되었습니다!';
+
+  @override
+  String get villagePublished => '마을이 공개되었습니다!';
+
+  @override
+  String get tapToPlaceHouse => '화면을 탭해서 집 위치를 정하세요';
+
+  @override
+  String get changeLocation => '위치 변경';
 }

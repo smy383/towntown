@@ -54,6 +54,18 @@ service cloud.firestore {
         // 생성/수정/삭제: 로그인한 사용자
         allow create, update, delete: if request.auth != null;
       }
+
+      // 집 서브컬렉션
+      match /houses/{houseId} {
+        // 읽기: 로그인한 사용자
+        allow read: if request.auth != null;
+        // 생성: 로그인한 사용자, 본인 소유의 집만
+        allow create: if request.auth != null
+                      && request.resource.data.ownerId == request.auth.uid;
+        // 수정/삭제: 집 소유자만
+        allow update, delete: if request.auth != null
+                              && resource.data.ownerId == request.auth.uid;
+      }
     }
   }
 }

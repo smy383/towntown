@@ -6,6 +6,7 @@ import '../models/village_model.dart';
 import '../providers/auth_provider.dart';
 import '../main.dart' show CreateCharacterScreen, VillageLand, DrawingStroke;
 import 'invitations_screen.dart';
+import 'village_map_screen.dart';
 
 class TownScreen extends StatefulWidget {
   const TownScreen({super.key});
@@ -32,15 +33,38 @@ class _TownScreenState extends State<TownScreen> {
     final userId = authProvider.user?.uid;
 
     try {
-      final allVillages = await _villageService.getAllVillages();
+      debugPrint('[TownScreen] Loading data...');
+      // 공개된(published) 마을만 조회
+      final publishedVillages = await _villageService.getPublishedVillages();
+      debugPrint('[TownScreen] Published villages: ${publishedVillages.length}');
+
       List<VillageModel> memberVillages = [];
       List<MembershipInvitation> invitations = [];
+      VillageModel? myVillage;
 
       if (userId != null) {
+        debugPrint('[TownScreen] Loading member villages...');
         memberVillages = await _villageService.getMyMemberVillages(userId);
+        debugPrint('[TownScreen] Member villages: ${memberVillages.length}');
+
+        debugPrint('[TownScreen] Loading invitations...');
         invitations = await _villageService.getMyInvitations(userId);
+        debugPrint('[TownScreen] Invitations: ${invitations.length}');
+
+        // 내 마을 조회 (draft여도 표시하기 위해)
+        debugPrint('[TownScreen] Loading my village...');
+        myVillage = await _villageService.getUserVillage(userId);
+        debugPrint('[TownScreen] My village: ${myVillage?.name}');
       }
 
+      // 최종 마을 목록 (내 draft 마을도 포함)
+      final allVillages = [...publishedVillages];
+      if (myVillage != null && myVillage.isDraft) {
+        // 내 draft 마을을 목록 맨 앞에 추가
+        allVillages.insert(0, myVillage);
+      }
+
+      debugPrint('[TownScreen] Done loading, setting state...');
       if (mounted) {
         setState(() {
           _allVillages = allVillages;
@@ -49,7 +73,9 @@ class _TownScreenState extends State<TownScreen> {
           _isLoading = false;
         });
       }
+      debugPrint('[TownScreen] Load complete');
     } catch (e) {
+      debugPrint('[TownScreen] Error: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -57,6 +83,7 @@ class _TownScreenState extends State<TownScreen> {
   }
 
   Future<void> _refreshData() async {
+    setState(() => _isLoading = true);
     await _loadData();
   }
 
@@ -67,6 +94,27 @@ class _TownScreenState extends State<TownScreen> {
     final userId = authProvider.user?.uid;
 
     if (userId == null) return;
+
+    // Draft 마을 처리
+    if (village.isDraft) {
+      if (village.ownerId == userId) {
+        // 본인의 draft 마을 → VillageMapScreen으로 이동하여 집 짓기 완료
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VillageMapScreen(village: village),
+            ),
+          ).then((_) => _loadData());
+        }
+      } else {
+        // 다른 사람의 draft 마을은 진입 불가
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.villageNotFound)),
+        );
+      }
+      return;
+    }
 
     // 캐릭터 확인
     final hasCharacter = await authProvider.hasCharacter();
@@ -82,6 +130,23 @@ class _TownScreenState extends State<TownScreen> {
         ),
       );
       return;
+    }
+
+    // 이장인 경우 집 확인 (published 마을이라도 집이 없을 수 있음)
+    if (village.ownerId == userId) {
+      final hasChiefHouse = await _villageService.hasChiefHouse(village.id);
+      if (!mounted) return;
+
+      if (!hasChiefHouse) {
+        // 이장 집이 없으면 집 짓기 화면으로
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VillageMapScreen(village: village),
+          ),
+        ).then((_) => _loadData());
+        return;
+      }
     }
 
     // 마을 진입 시도
@@ -144,6 +209,7 @@ class _TownScreenState extends State<TownScreen> {
         MaterialPageRoute(
           builder: (context) => VillageLand(
             villageId: village.id,
+            villageName: village.name,
             characterName: characterName,
             characterStrokes: characterStrokes,
           ),
@@ -297,6 +363,8 @@ class _TownScreenState extends State<TownScreen> {
             ..._allVillages.map((village) => _VillageCard(
               village: village,
               onTap: () => _enterVillage(village),
+              badge: village.isDraft ? L10n.of(context)!.villageDraft : null,
+              accentColor: village.isDraft ? Colors.orangeAccent : Colors.purpleAccent,
             )),
           ],
         ),

@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../services/village_service.dart';
 import '../models/village_model.dart';
 import '../widgets/globe_widget.dart';
+import 'village_map_screen.dart';
 
 class CreateVillageScreen extends StatefulWidget {
   const CreateVillageScreen({super.key});
@@ -161,10 +162,14 @@ class _CreateVillageScreenState extends State<CreateVillageScreen>
         _isCreating = false;
       });
 
-      // 2초 후 화면 닫기
-      await Future.delayed(const Duration(seconds: 2));
+      // 1초 후 VillageMapScreen으로 이동 (이장 집 배치)
+      await Future.delayed(const Duration(seconds: 1));
       if (mounted) {
-        Navigator.of(context).pop(village);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => VillageMapScreen(village: village),
+          ),
+        );
       }
     } catch (e) {
       setState(() => _isCreating = false);

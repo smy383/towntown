@@ -662,6 +662,78 @@ abstract class L10n {
   /// In ko, this message translates to:
   /// **'받은 초대가 없습니다'**
   String get noInvitations;
+
+  /// No description provided for @selectHouseLocation.
+  ///
+  /// In ko, this message translates to:
+  /// **'집 위치를 선택하세요'**
+  String get selectHouseLocation;
+
+  /// No description provided for @buildHouseHere.
+  ///
+  /// In ko, this message translates to:
+  /// **'여기에 집 짓기'**
+  String get buildHouseHere;
+
+  /// No description provided for @drawYourHouse.
+  ///
+  /// In ko, this message translates to:
+  /// **'집을 그려주세요'**
+  String get drawYourHouse;
+
+  /// No description provided for @doorGuide.
+  ///
+  /// In ko, this message translates to:
+  /// **'문 위치'**
+  String get doorGuide;
+
+  /// No description provided for @completeHouse.
+  ///
+  /// In ko, this message translates to:
+  /// **'집 완성'**
+  String get completeHouse;
+
+  /// No description provided for @villageDraft.
+  ///
+  /// In ko, this message translates to:
+  /// **'미완성'**
+  String get villageDraft;
+
+  /// No description provided for @chiefHouse.
+  ///
+  /// In ko, this message translates to:
+  /// **'이장의 집'**
+  String get chiefHouse;
+
+  /// No description provided for @houseBuilding.
+  ///
+  /// In ko, this message translates to:
+  /// **'집을 짓는 중...'**
+  String get houseBuilding;
+
+  /// No description provided for @houseSaved.
+  ///
+  /// In ko, this message translates to:
+  /// **'집이 완성되었습니다!'**
+  String get houseSaved;
+
+  /// No description provided for @villagePublished.
+  ///
+  /// In ko, this message translates to:
+  /// **'마을이 공개되었습니다!'**
+  String get villagePublished;
+
+  /// No description provided for @tapToPlaceHouse.
+  ///
+  /// In ko, this message translates to:
+  /// **'화면을 탭해서 집 위치를 정하세요'**
+  String get tapToPlaceHouse;
+
+  /// No description provided for @changeLocation.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치 변경'**
+  String get changeLocation;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {
