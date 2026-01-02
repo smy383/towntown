@@ -1909,18 +1909,42 @@ class _VillageLandState extends State<VillageLand>
 
     // 다른 플레이어 구독
     debugPrint('[Multiplayer] Subscribing to players stream...');
-    _playersSubscription = _playerService.playersStream(villageId).listen((players) {
-      debugPrint('[Multiplayer] Received ${players.length} players from stream');
-      for (final p in players) {
-        debugPrint('[Multiplayer]   - ${p.uid}: ${p.characterName} at (${p.x}, ${p.y})');
-      }
-      if (mounted) {
-        setState(() {
-          _otherPlayers = players.where((p) => p.uid != _myUid).toList();
-          debugPrint('[Multiplayer] Other players count: ${_otherPlayers.length}');
+    _playersSubscription = _playerService.playersStream(villageId).listen(
+      (players) {
+        debugPrint('[Multiplayer] Received ${players.length} players from stream');
+        for (final p in players) {
+          debugPrint('[Multiplayer]   - ${p.uid}: ${p.characterName} at (${p.x}, ${p.y})');
+        }
+        if (mounted) {
+          setState(() {
+            _otherPlayers = players.where((p) => p.uid != _myUid).toList();
+            debugPrint('[Multiplayer] Other players count: ${_otherPlayers.length}');
+          });
+        }
+      },
+      onError: (error) {
+        debugPrint('[Multiplayer] Stream error: $error');
+        // 에러 발생 시 재구독 시도
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && villageId != null) {
+            debugPrint('[Multiplayer] Attempting to resubscribe...');
+            _playersSubscription?.cancel();
+            _playersSubscription = _playerService.playersStream(villageId).listen(
+              (players) {
+                if (mounted) {
+                  setState(() {
+                    _otherPlayers = players.where((p) => p.uid != _myUid).toList();
+                  });
+                }
+              },
+            );
+          }
         });
-      }
-    });
+      },
+      onDone: () {
+        debugPrint('[Multiplayer] Stream closed');
+      },
+    );
 
     // 위치 업데이트 타이머 (100ms 간격)
     _positionUpdateTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
@@ -1935,20 +1959,39 @@ class _VillageLandState extends State<VillageLand>
     });
   }
 
+  // 마지막 동기화 위치 (불필요한 업데이트 방지)
+  double _lastSyncX = 0;
+  double _lastSyncY = 0;
+  bool _lastSyncMoving = false;
+
   /// 내 위치를 Firestore에 동기화
   Future<void> _syncPositionToFirestore() async {
     final villageId = widget.villageId;
     if (villageId == null || _myUid == null) return;
 
-    await _playerService.updatePosition(
-      villageId: villageId,
-      uid: _myUid!,
-      x: _worldX,
-      y: _worldY,
-      facingRight: _facingRight,
-      isMoving: _isMoving,
-      isRunning: _isRunning,
-    );
+    // 위치나 상태가 변경되었을 때만 업데이트
+    final posChanged = (_worldX - _lastSyncX).abs() > 1 || (_worldY - _lastSyncY).abs() > 1;
+    final stateChanged = _isMoving != _lastSyncMoving;
+
+    if (!posChanged && !stateChanged) return;
+
+    _lastSyncX = _worldX;
+    _lastSyncY = _worldY;
+    _lastSyncMoving = _isMoving;
+
+    try {
+      await _playerService.updatePosition(
+        villageId: villageId,
+        uid: _myUid!,
+        x: _worldX,
+        y: _worldY,
+        facingRight: _facingRight,
+        isMoving: _isMoving,
+        isRunning: _isRunning,
+      );
+    } catch (e) {
+      debugPrint('[Multiplayer] Error syncing position: $e');
+    }
   }
 
   // 카메라 오프셋 계산 (월드 좌표 -> 화면 좌표 변환용)
@@ -1983,6 +2026,13 @@ class _VillageLandState extends State<VillageLand>
     _positionUpdateTimer?.cancel();
     _heartbeatTimer?.cancel();
 
+    // 플레이어 삭제 (fire-and-forget)
+    final villageId = widget.villageId;
+    if (villageId != null && _myUid != null) {
+      debugPrint('[VillageLand] dispose: deleting player $_myUid from $villageId');
+      _playerService.leaveVillage(villageId: villageId, uid: _myUid!);
+    }
+
     // 집 스트림 정리
     _housesSubscription?.cancel();
 
@@ -1996,12 +2046,21 @@ class _VillageLandState extends State<VillageLand>
 
   /// 마을 퇴장
   Future<void> _leaveVillage() async {
+    debugPrint('[VillageLand] _leaveVillage() called');
     final villageId = widget.villageId;
-    if (villageId == null) return;
+    if (villageId == null) {
+      debugPrint('[VillageLand] _leaveVillage: villageId is null, returning');
+      return;
+    }
 
     final authProvider = context.read<AuthProvider>();
     final userId = authProvider.user?.uid;
-    if (userId == null) return;
+    if (userId == null) {
+      debugPrint('[VillageLand] _leaveVillage: userId is null, returning');
+      return;
+    }
+
+    debugPrint('[VillageLand] _leaveVillage: villageId=$villageId, userId=$userId');
 
     // 플레이어 상태 삭제
     await _playerService.leaveVillage(
@@ -2014,6 +2073,7 @@ class _VillageLandState extends State<VillageLand>
       villageId: villageId,
       userId: userId,
     );
+    debugPrint('[VillageLand] _leaveVillage: completed');
   }
 
   /// 나가기 버튼 처리

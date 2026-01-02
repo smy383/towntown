@@ -183,7 +183,13 @@ class PlayerService {
     required String villageId,
     required String uid,
   }) async {
-    await _playersRef(villageId).doc(uid).delete();
+    debugPrint('[PlayerService] leaveVillage: villageId=$villageId, uid=$uid');
+    try {
+      await _playersRef(villageId).doc(uid).delete();
+      debugPrint('[PlayerService] leaveVillage: SUCCESS - player deleted');
+    } catch (e) {
+      debugPrint('[PlayerService] leaveVillage: ERROR - $e');
+    }
   }
 
   /// 마을 내 모든 플레이어 실시간 스트림
