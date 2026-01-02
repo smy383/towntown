@@ -734,6 +734,54 @@ abstract class L10n {
   /// In ko, this message translates to:
   /// **'위치 변경'**
   String get changeLocation;
+
+  /// No description provided for @updateAvailable.
+  ///
+  /// In ko, this message translates to:
+  /// **'업데이트 가능'**
+  String get updateAvailable;
+
+  /// No description provided for @updateRequired.
+  ///
+  /// In ko, this message translates to:
+  /// **'업데이트 필요'**
+  String get updateRequired;
+
+  /// No description provided for @updateAvailableMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 버전({version})이 있습니다. 업데이트 하시겠습니까?'**
+  String updateAvailableMessage(Object version);
+
+  /// No description provided for @updateRequiredMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'앱을 계속 사용하려면 새 버전({version})으로 업데이트해야 합니다.'**
+  String updateRequiredMessage(Object version);
+
+  /// No description provided for @updateNow.
+  ///
+  /// In ko, this message translates to:
+  /// **'지금 업데이트'**
+  String get updateNow;
+
+  /// No description provided for @updateLater.
+  ///
+  /// In ko, this message translates to:
+  /// **'나중에'**
+  String get updateLater;
+
+  /// No description provided for @newVersion.
+  ///
+  /// In ko, this message translates to:
+  /// **'새 버전'**
+  String get newVersion;
+
+  /// No description provided for @currentVersion.
+  ///
+  /// In ko, this message translates to:
+  /// **'현재 버전'**
+  String get currentVersion;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

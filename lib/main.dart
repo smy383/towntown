@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'l10n/app_localizations.dart';
 import 'dart:math';
 import 'firebase_options.dart';
@@ -14,6 +16,7 @@ import 'screens/auth_screen.dart';
 import 'screens/main_navigation_screen.dart';
 import 'services/village_service.dart';
 import 'services/player_service.dart';
+import 'services/update_service.dart';
 import 'widgets/membership_button.dart';
 import 'models/house_model.dart';
 import 'screens/house_interior_screen.dart';
@@ -97,11 +100,120 @@ class _AuthenticatedHome extends StatefulWidget {
 
 class _AuthenticatedHomeState extends State<_AuthenticatedHome> {
   late Future<bool> _hasCharacterFuture;
+  final UpdateService _updateService = UpdateService();
 
   @override
   void initState() {
     super.initState();
     _hasCharacterFuture = context.read<AuthProvider>().hasCharacter();
+    _checkForUpdate();
+  }
+
+  Future<void> _checkForUpdate() async {
+    final result = await _updateService.checkForUpdate();
+
+    if (!mounted) return;
+
+    if (result.status == UpdateStatus.updateRequired) {
+      _showUpdateDialog(result.info!, isRequired: true);
+    } else if (result.status == UpdateStatus.updateAvailable) {
+      _showUpdateDialog(result.info!, isRequired: false);
+    }
+  }
+
+  void _showUpdateDialog(AppUpdateInfo info, {required bool isRequired}) {
+    final l10n = L10n.of(context);
+    if (l10n == null) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: !isRequired,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isRequired ? Colors.orangeAccent : Colors.cyanAccent,
+            width: 1,
+          ),
+        ),
+        title: Row(
+          children: [
+            Icon(
+              isRequired ? Icons.warning_amber_rounded : Icons.system_update,
+              color: isRequired ? Colors.orangeAccent : Colors.cyanAccent,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              isRequired ? l10n.updateRequired : l10n.updateAvailable,
+              style: TextStyle(
+                color: isRequired ? Colors.orangeAccent : Colors.cyanAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isRequired
+                  ? l10n.updateRequiredMessage(info.latestVersion)
+                  : l10n.updateAvailableMessage(info.latestVersion),
+              style: const TextStyle(color: Colors.white70),
+            ),
+            if (info.releaseNotes != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  info.releaseNotes!,
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          if (!isRequired)
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                l10n.updateLater,
+                style: const TextStyle(color: Colors.white54),
+              ),
+            ),
+          ElevatedButton(
+            onPressed: () => _openStore(info.updateUrl),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isRequired ? Colors.orangeAccent : Colors.cyanAccent,
+              foregroundColor: Colors.black,
+            ),
+            child: Text(l10n.updateNow),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openStore(String? customUrl) async {
+    final url = customUrl ?? _updateService.getStoreUrl();
+    final uri = Uri.parse(url);
+
+    if (kIsWeb) {
+      // 웹에서는 새로고침
+      // ignore: unsafe_html
+      await launchUrl(uri, webOnlyWindowName: '_self');
+    } else {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    }
   }
 
   @override

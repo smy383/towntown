@@ -105,5 +105,13 @@
   "houseSaved": "House completed!",
   "villagePublished": "Village published!",
   "tapToPlaceHouse": "Tap to place your house",
-  "changeLocation": "Change location"
+  "changeLocation": "Change location",
+  "updateAvailable": "Update Available",
+  "updateRequired": "Update Required",
+  "updateAvailableMessage": "A new version ({version}) is available. Would you like to update?",
+  "updateRequiredMessage": "You need to update to version {version} to continue using the app.",
+  "updateNow": "Update Now",
+  "updateLater": "Later",
+  "newVersion": "New Version",
+  "currentVersion": "Current Version"
 }

@@ -105,5 +105,13 @@
   "houseSaved": "집이 완성되었습니다!",
   "villagePublished": "마을이 공개되었습니다!",
   "tapToPlaceHouse": "화면을 탭해서 집 위치를 정하세요",
-  "changeLocation": "위치 변경"
+  "changeLocation": "위치 변경",
+  "updateAvailable": "업데이트 가능",
+  "updateRequired": "업데이트 필요",
+  "updateAvailableMessage": "새 버전({version})이 있습니다. 업데이트 하시겠습니까?",
+  "updateRequiredMessage": "앱을 계속 사용하려면 새 버전({version})으로 업데이트해야 합니다.",
+  "updateNow": "지금 업데이트",
+  "updateLater": "나중에",
+  "newVersion": "새 버전",
+  "currentVersion": "현재 버전"
 }

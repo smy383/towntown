@@ -105,5 +105,13 @@
   "houseSaved": "家が完成しました!",
   "villagePublished": "村が公開されました!",
   "tapToPlaceHouse": "タップして家の位置を決めてください",
-  "changeLocation": "位置を変更"
+  "changeLocation": "位置を変更",
+  "updateAvailable": "アップデート可能",
+  "updateRequired": "アップデート必要",
+  "updateAvailableMessage": "新しいバージョン({version})があります。アップデートしますか?",
+  "updateRequiredMessage": "アプリを引き続き使用するには、バージョン{version}にアップデートする必要があります。",
+  "updateNow": "今すぐアップデート",
+  "updateLater": "後で",
+  "newVersion": "新しいバージョン",
+  "currentVersion": "現在のバージョン"
 }

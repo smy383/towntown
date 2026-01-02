@@ -333,4 +333,32 @@ class L10nKo extends L10n {
 
   @override
   String get changeLocation => '위치 변경';
+
+  @override
+  String get updateAvailable => '업데이트 가능';
+
+  @override
+  String get updateRequired => '업데이트 필요';
+
+  @override
+  String updateAvailableMessage(Object version) {
+    return '새 버전($version)이 있습니다. 업데이트 하시겠습니까?';
+  }
+
+  @override
+  String updateRequiredMessage(Object version) {
+    return '앱을 계속 사용하려면 새 버전($version)으로 업데이트해야 합니다.';
+  }
+
+  @override
+  String get updateNow => '지금 업데이트';
+
+  @override
+  String get updateLater => '나중에';
+
+  @override
+  String get newVersion => '새 버전';
+
+  @override
+  String get currentVersion => '현재 버전';
 }

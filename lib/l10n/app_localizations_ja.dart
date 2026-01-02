@@ -333,4 +333,32 @@ class L10nJa extends L10n {
 
   @override
   String get changeLocation => '位置を変更';
+
+  @override
+  String get updateAvailable => 'アップデート可能';
+
+  @override
+  String get updateRequired => 'アップデート必要';
+
+  @override
+  String updateAvailableMessage(Object version) {
+    return '新しいバージョン($version)があります。アップデートしますか?';
+  }
+
+  @override
+  String updateRequiredMessage(Object version) {
+    return 'アプリを引き続き使用するには、バージョン$versionにアップデートする必要があります。';
+  }
+
+  @override
+  String get updateNow => '今すぐアップデート';
+
+  @override
+  String get updateLater => '後で';
+
+  @override
+  String get newVersion => '新しいバージョン';
+
+  @override
+  String get currentVersion => '現在のバージョン';
 }

@@ -334,4 +334,32 @@ class L10nEn extends L10n {
 
   @override
   String get changeLocation => 'Change location';
+
+  @override
+  String get updateAvailable => 'Update Available';
+
+  @override
+  String get updateRequired => 'Update Required';
+
+  @override
+  String updateAvailableMessage(Object version) {
+    return 'A new version ($version) is available. Would you like to update?';
+  }
+
+  @override
+  String updateRequiredMessage(Object version) {
+    return 'You need to update to version $version to continue using the app.';
+  }
+
+  @override
+  String get updateNow => 'Update Now';
+
+  @override
+  String get updateLater => 'Later';
+
+  @override
+  String get newVersion => 'New Version';
+
+  @override
+  String get currentVersion => 'Current Version';
 }
