@@ -333,7 +333,7 @@ class _RoomViewPainter extends CustomPainter {
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Colors.grey[900]!, Colors.grey[850]!],
+        colors: [Colors.grey.shade900, Colors.grey.shade800],
       ).createShader(Rect.fromLTWH(0, 0, roomWidth, 160));
     canvas.drawRect(Rect.fromLTWH(0, 0, roomWidth, 160), wallPaint);
 
