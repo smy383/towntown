@@ -1903,6 +1903,10 @@ class _VillageLandState extends State<VillageLand>
     );
     debugPrint('[Multiplayer] Entered village successfully');
 
+    // 오래된 플레이어 정리 (30초 이상 업데이트 없는 플레이어 삭제)
+    await _playerService.cleanupStalePlayers(villageId: villageId);
+    debugPrint('[Multiplayer] Cleaned up stale players');
+
     // 다른 플레이어 구독
     debugPrint('[Multiplayer] Subscribing to players stream...');
     _playersSubscription = _playerService.playersStream(villageId).listen((players) {
