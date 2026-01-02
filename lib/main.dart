@@ -110,6 +110,9 @@ class _AuthenticatedHomeState extends State<_AuthenticatedHome> {
   }
 
   Future<void> _checkForUpdate() async {
+    // 웹에서는 서비스 워커가 업데이트를 처리하므로 건너뜀
+    if (kIsWeb) return;
+
     final result = await _updateService.checkForUpdate();
 
     if (!mounted) return;
