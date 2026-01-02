@@ -87,26 +87,35 @@
 
   <script>
     // 서비스 워커 업데이트 감지
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // 새 버전이 설치됨 - 배너 표시
-                document.getElementById('update-banner').style.display = 'block';
-              }
-            });
-          }
-        });
-      });
+    (function() {
+      let updateShown = false;
 
-      // 페이지 로드 시 업데이트 확인
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.update();
-      });
-    }
+      function showUpdateBanner() {
+        if (updateShown) return;
+        updateShown = true;
+        document.getElementById('update-banner').style.display = 'block';
+      }
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  showUpdateBanner();
+                }
+              });
+            }
+          });
+        });
+
+        // 페이지 로드 시 업데이트 확인
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.update();
+        });
+      }
+    })();
   </script>
 </body>
 </html>
