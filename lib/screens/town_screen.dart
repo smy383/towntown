@@ -32,54 +32,69 @@ class _TownScreenState extends State<TownScreen> {
     final authProvider = context.read<AuthProvider>();
     final userId = authProvider.user?.uid;
 
+    List<VillageModel> publishedVillages = [];
+    List<VillageModel> memberVillages = [];
+    List<MembershipInvitation> invitations = [];
+    VillageModel? myVillage;
+
+    // 1. 공개된 마을 조회
     try {
-      debugPrint('[TownScreen] Loading data...');
-      // 공개된(published) 마을만 조회
-      final publishedVillages = await _villageService.getPublishedVillages();
-      debugPrint('[TownScreen] Published villages: ${publishedVillages.length}');
-
-      List<VillageModel> memberVillages = [];
-      List<MembershipInvitation> invitations = [];
-      VillageModel? myVillage;
-
-      if (userId != null) {
-        debugPrint('[TownScreen] Loading member villages...');
-        memberVillages = await _villageService.getMyMemberVillages(userId);
-        debugPrint('[TownScreen] Member villages: ${memberVillages.length}');
-
-        debugPrint('[TownScreen] Loading invitations...');
-        invitations = await _villageService.getMyInvitations(userId);
-        debugPrint('[TownScreen] Invitations: ${invitations.length}');
-
-        // 내 마을 조회 (draft여도 표시하기 위해)
-        debugPrint('[TownScreen] Loading my village...');
-        myVillage = await _villageService.getUserVillage(userId);
-        debugPrint('[TownScreen] My village: ${myVillage?.name}');
-      }
-
-      // 최종 마을 목록 (내 draft 마을도 포함)
-      final allVillages = [...publishedVillages];
-      if (myVillage != null && myVillage.isDraft) {
-        // 내 draft 마을을 목록 맨 앞에 추가
-        allVillages.insert(0, myVillage);
-      }
-
-      debugPrint('[TownScreen] Done loading, setting state...');
-      if (mounted) {
-        setState(() {
-          _allVillages = allVillages;
-          _myMemberVillages = memberVillages;
-          _myInvitations = invitations;
-          _isLoading = false;
-        });
-      }
-      debugPrint('[TownScreen] Load complete');
+      debugPrint('[TownScreen] 1. Loading published villages...');
+      publishedVillages = await _villageService.getPublishedVillages()
+          .timeout(const Duration(seconds: 10));
+      debugPrint('[TownScreen] 1. Published villages: ${publishedVillages.length}');
     } catch (e) {
-      debugPrint('[TownScreen] Error: $e');
-      if (mounted) {
-        setState(() => _isLoading = false);
+      debugPrint('[TownScreen] 1. Error loading published villages: $e');
+    }
+
+    if (userId != null) {
+      // 2. 내가 주민인 마을 조회
+      try {
+        debugPrint('[TownScreen] 2. Loading member villages...');
+        memberVillages = await _villageService.getMyMemberVillages(userId)
+            .timeout(const Duration(seconds: 10));
+        debugPrint('[TownScreen] 2. Member villages: ${memberVillages.length}');
+      } catch (e) {
+        debugPrint('[TownScreen] 2. Error loading member villages: $e');
+      }
+
+      // 3. 초대 조회
+      try {
+        debugPrint('[TownScreen] 3. Loading invitations...');
+        invitations = await _villageService.getMyInvitations(userId)
+            .timeout(const Duration(seconds: 10));
+        debugPrint('[TownScreen] 3. Invitations: ${invitations.length}');
+      } catch (e) {
+        debugPrint('[TownScreen] 3. Error loading invitations: $e');
+      }
+
+      // 4. 내 마을 조회
+      try {
+        debugPrint('[TownScreen] 4. Loading my village...');
+        myVillage = await _villageService.getUserVillage(userId)
+            .timeout(const Duration(seconds: 10));
+        debugPrint('[TownScreen] 4. My village: ${myVillage?.name}');
+      } catch (e) {
+        debugPrint('[TownScreen] 4. Error loading my village: $e');
       }
     }
+
+    // 최종 마을 목록 (내 draft 마을도 포함)
+    final allVillages = [...publishedVillages];
+    if (myVillage != null && myVillage.isDraft) {
+      allVillages.insert(0, myVillage);
+    }
+
+    debugPrint('[TownScreen] Done loading, setting state...');
+    if (mounted) {
+      setState(() {
+        _allVillages = allVillages;
+        _myMemberVillages = memberVillages;
+        _myInvitations = invitations;
+        _isLoading = false;
+      });
+    }
+    debugPrint('[TownScreen] Load complete');
   }
 
   Future<void> _refreshData() async {
