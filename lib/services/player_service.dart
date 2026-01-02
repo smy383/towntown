@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 /// 마을 내 플레이어 상태
 class PlayerState {
@@ -112,18 +113,25 @@ class PlayerService {
     double initialX = 1000,
     double initialY = 1000,
   }) async {
-    await _playersRef(villageId).doc(uid).set({
-      'characterName': characterName,
-      'characterStrokes': characterStrokes,
-      'x': initialX,
-      'y': initialY,
-      'facingRight': true,
-      'isMoving': false,
-      'isRunning': false,
-      'chatMessage': null,
-      'chatTime': null,
-      'lastSeen': FieldValue.serverTimestamp(),
-    });
+    debugPrint('[PlayerService] enterVillage: villageId=$villageId, uid=$uid, name=$characterName');
+    try {
+      await _playersRef(villageId).doc(uid).set({
+        'characterName': characterName,
+        'characterStrokes': characterStrokes,
+        'x': initialX,
+        'y': initialY,
+        'facingRight': true,
+        'isMoving': false,
+        'isRunning': false,
+        'chatMessage': null,
+        'chatTime': null,
+        'lastSeen': FieldValue.serverTimestamp(),
+      });
+      debugPrint('[PlayerService] enterVillage: SUCCESS');
+    } catch (e) {
+      debugPrint('[PlayerService] enterVillage: ERROR - $e');
+      rethrow;
+    }
   }
 
   /// 플레이어 위치 업데이트
@@ -180,11 +188,15 @@ class PlayerService {
 
   /// 마을 내 모든 플레이어 실시간 스트림
   Stream<List<PlayerState>> playersStream(String villageId) {
+    debugPrint('[PlayerService] playersStream: subscribing to villageId=$villageId');
     return _playersRef(villageId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => PlayerState.fromFirestore(doc))
-            .toList());
+        .map((snapshot) {
+          debugPrint('[PlayerService] playersStream: received ${snapshot.docs.length} docs');
+          return snapshot.docs
+              .map((doc) => PlayerState.fromFirestore(doc))
+              .toList();
+        });
   }
 
   /// 오래된 플레이어 정리 (30초 이상 업데이트 없으면 삭제)

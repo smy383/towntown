@@ -1876,10 +1876,12 @@ class _VillageLandState extends State<VillageLand>
   /// 멀티플레이어 시스템 초기화
   Future<void> _initMultiplayer() async {
     final villageId = widget.villageId;
+    debugPrint('[Multiplayer] _initMultiplayer() called, villageId: $villageId');
     if (villageId == null) return;
 
     final authProvider = context.read<AuthProvider>();
     _myUid = authProvider.user?.uid;
+    debugPrint('[Multiplayer] myUid: $_myUid');
     if (_myUid == null) return;
 
     // 캐릭터 스트로크를 Map으로 변환
@@ -1890,6 +1892,7 @@ class _VillageLandState extends State<VillageLand>
     }).toList();
 
     // 마을에 입장
+    debugPrint('[Multiplayer] Entering village...');
     await _playerService.enterVillage(
       villageId: villageId,
       uid: _myUid!,
@@ -1898,12 +1901,19 @@ class _VillageLandState extends State<VillageLand>
       initialX: _worldX,
       initialY: _worldY,
     );
+    debugPrint('[Multiplayer] Entered village successfully');
 
     // 다른 플레이어 구독
+    debugPrint('[Multiplayer] Subscribing to players stream...');
     _playersSubscription = _playerService.playersStream(villageId).listen((players) {
+      debugPrint('[Multiplayer] Received ${players.length} players from stream');
+      for (final p in players) {
+        debugPrint('[Multiplayer]   - ${p.uid}: ${p.characterName} at (${p.x}, ${p.y})');
+      }
       if (mounted) {
         setState(() {
           _otherPlayers = players.where((p) => p.uid != _myUid).toList();
+          debugPrint('[Multiplayer] Other players count: ${_otherPlayers.length}');
         });
       }
     });
