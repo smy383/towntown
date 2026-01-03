@@ -782,6 +782,138 @@ abstract class L10n {
   /// In ko, this message translates to:
   /// **'현재 버전'**
   String get currentVersion;
+
+  /// No description provided for @membershipPendingHouse.
+  ///
+  /// In ko, this message translates to:
+  /// **'집 짓기 대기'**
+  String get membershipPendingHouse;
+
+  /// No description provided for @approveWithLocation.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치 지정 후 승인'**
+  String get approveWithLocation;
+
+  /// No description provided for @selectMemberHouseLocation.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민 집 위치를 선택하세요'**
+  String get selectMemberHouseLocation;
+
+  /// No description provided for @assignLocation.
+  ///
+  /// In ko, this message translates to:
+  /// **'위치 지정'**
+  String get assignLocation;
+
+  /// No description provided for @houseBuildDeadline.
+  ///
+  /// In ko, this message translates to:
+  /// **'집 짓기 기한'**
+  String get houseBuildDeadline;
+
+  /// No description provided for @daysRemaining.
+  ///
+  /// In ko, this message translates to:
+  /// **'{days}일 남음'**
+  String daysRemaining(Object days);
+
+  /// No description provided for @deadlineExpired.
+  ///
+  /// In ko, this message translates to:
+  /// **'기한 만료'**
+  String get deadlineExpired;
+
+  /// No description provided for @buildYourHouse.
+  ///
+  /// In ko, this message translates to:
+  /// **'집을 지어주세요'**
+  String get buildYourHouse;
+
+  /// No description provided for @buildHouseMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'{village} 마을의 주민이 되었습니다! {days}일 내에 집을 지어주세요.'**
+  String buildHouseMessage(Object days, Object village);
+
+  /// No description provided for @goToBuildHouse.
+  ///
+  /// In ko, this message translates to:
+  /// **'집 짓기'**
+  String get goToBuildHouse;
+
+  /// No description provided for @notificationTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'알림'**
+  String get notificationTitle;
+
+  /// No description provided for @notificationEmpty.
+  ///
+  /// In ko, this message translates to:
+  /// **'알림이 없습니다'**
+  String get notificationEmpty;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In ko, this message translates to:
+  /// **'모두 읽음'**
+  String get markAllRead;
+
+  /// No description provided for @membershipApprovedTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민 신청 승인'**
+  String get membershipApprovedTitle;
+
+  /// No description provided for @membershipApprovedMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'{village} 마을의 주민이 되었습니다! 7일 내에 집을 지어주세요.'**
+  String membershipApprovedMessage(Object village);
+
+  /// No description provided for @membershipRejectedTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'주민 신청 거절'**
+  String get membershipRejectedTitle;
+
+  /// No description provided for @membershipRejectedMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'{village} 마을의 주민 신청이 거절되었습니다.'**
+  String membershipRejectedMessage(Object village);
+
+  /// No description provided for @membershipExpiredTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'집 짓기 기한 만료'**
+  String get membershipExpiredTitle;
+
+  /// No description provided for @membershipExpiredMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'{village} 마을의 집 짓기 기한이 만료되어 주민 자격이 취소되었습니다.'**
+  String membershipExpiredMessage(Object village);
+
+  /// No description provided for @pendingHouseRequests.
+  ///
+  /// In ko, this message translates to:
+  /// **'집 짓기 대기 중'**
+  String get pendingHouseRequests;
+
+  /// No description provided for @noPendingHouseRequests.
+  ///
+  /// In ko, this message translates to:
+  /// **'집 짓기 대기 중인 신청이 없습니다'**
+  String get noPendingHouseRequests;
+
+  /// No description provided for @memberHouseLocation.
+  ///
+  /// In ko, this message translates to:
+  /// **'집 위치가 지정되었습니다'**
+  String get memberHouseLocation;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

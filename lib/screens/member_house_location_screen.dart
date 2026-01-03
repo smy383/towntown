@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/village_model.dart';
-import 'house_design_screen.dart';
+import '../services/village_service.dart';
+import '../providers/auth_provider.dart';
 
-/// 마을 전체 맵에서 집 위치를 선택하는 화면
-class VillageMapScreen extends StatefulWidget {
-  final VillageModel village;
+/// 이장이 주민 집 위치를 선택하는 화면
+class MemberHouseLocationScreen extends StatefulWidget {
+  final String villageId;
+  final String villageName;
+  final MembershipRequest request;
 
-  const VillageMapScreen({
+  const MemberHouseLocationScreen({
     super.key,
-    required this.village,
+    required this.villageId,
+    required this.villageName,
+    required this.request,
   });
 
   @override
-  State<VillageMapScreen> createState() => _VillageMapScreenState();
+  State<MemberHouseLocationScreen> createState() => _MemberHouseLocationScreenState();
 }
 
-class _VillageMapScreenState extends State<VillageMapScreen> {
+class _MemberHouseLocationScreenState extends State<MemberHouseLocationScreen> {
   // 월드 크기
   static const double worldWidth = 2000;
   static const double worldHeight = 2000;
@@ -34,6 +40,9 @@ class _VillageMapScreenState extends State<VillageMapScreen> {
   // 스케일 (월드 → 화면)
   double get _scale => _mapViewWidth / worldWidth;
 
+  bool _isLoading = false;
+  final VillageService _villageService = VillageService();
+
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context)!;
@@ -44,7 +53,7 @@ class _VillageMapScreenState extends State<VillageMapScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          l10n.selectHouseLocation,
+          l10n.selectMemberHouseLocation,
           style: const TextStyle(
             color: Colors.cyanAccent,
             fontWeight: FontWeight.bold,
@@ -52,14 +61,59 @@ class _VillageMapScreenState extends State<VillageMapScreen> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, false),
         ),
       ),
       body: Column(
         children: [
+          // 신청자 정보
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[900],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.5)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.cyanAccent.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.person, color: Colors.cyanAccent),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.request.requesterName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${l10n.houseBuildDeadline}: 7일',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // 안내 텍스트
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               l10n.tapToPlaceHouse,
               style: TextStyle(
@@ -69,6 +123,8 @@ class _VillageMapScreenState extends State<VillageMapScreen> {
               textAlign: TextAlign.center,
             ),
           ),
+
+          const SizedBox(height: 16),
 
           // 맵 뷰
           Expanded(
@@ -121,7 +177,7 @@ class _VillageMapScreenState extends State<VillageMapScreen> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                // 위치 변경 버튼 (위치가 선택된 경우)
+                // 위치 정보 표시
                 if (_selectedPosition != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -134,31 +190,42 @@ class _VillageMapScreenState extends State<VillageMapScreen> {
                     ),
                   ),
 
-                // 집 짓기 버튼
+                // 승인 버튼
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _selectedPosition != null ? _onBuildHouse : null,
+                    onPressed: _selectedPosition != null && !_isLoading
+                        ? _onApprove
+                        : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.cyanAccent.withValues(alpha: 0.2),
-                      foregroundColor: Colors.cyanAccent,
+                      backgroundColor: Colors.greenAccent.withValues(alpha: 0.2),
+                      foregroundColor: Colors.greenAccent,
                       side: BorderSide(
                         color: _selectedPosition != null
-                            ? Colors.cyanAccent
+                            ? Colors.greenAccent
                             : Colors.grey,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),
                     ),
-                    child: Text(
-                      l10n.buildHouseHere,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.greenAccent,
+                            ),
+                          )
+                        : Text(
+                            l10n.assignLocation,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],
@@ -185,20 +252,59 @@ class _VillageMapScreenState extends State<VillageMapScreen> {
     });
   }
 
-  void _onBuildHouse() {
+  Future<void> _onApprove() async {
     if (_selectedPosition == null) return;
 
-    // HouseDesignScreen으로 이동
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HouseDesignScreen(
-          village: widget.village,
-          houseX: _selectedPosition!.dx,
-          houseY: _selectedPosition!.dy,
-        ),
-      ),
-    );
+    final authProvider = context.read<AuthProvider>();
+    final ownerId = authProvider.user?.uid;
+    final l10n = L10n.of(context)!;
+
+    if (ownerId == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final success = await _villageService.approveMembershipWithLocation(
+        villageId: widget.villageId,
+        requestId: widget.request.id,
+        ownerId: ownerId,
+        houseX: _selectedPosition!.dx,
+        houseY: _selectedPosition!.dy,
+      );
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.memberHouseLocation),
+              backgroundColor: Colors.greenAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('승인에 실패했습니다'),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          setState(() => _isLoading = false);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }
 
@@ -308,22 +414,22 @@ class _MapPainter extends CustomPainter {
       height: screenHeight,
     );
 
-    // 반투명 흰색 배경
+    // 반투명 초록색 배경 (승인을 의미)
     final fillPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.3)
+      ..color = Colors.greenAccent.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
     canvas.drawRect(rect, fillPaint);
 
     // 테두리
     final borderPaint = Paint()
-      ..color = Colors.cyanAccent
+      ..color = Colors.greenAccent
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawRect(rect, borderPaint);
 
     // 글로우 효과
     final glowPaint = Paint()
-      ..color = Colors.cyanAccent.withValues(alpha: 0.3)
+      ..color = Colors.greenAccent.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 6
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);

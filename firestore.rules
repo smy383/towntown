@@ -20,6 +20,18 @@ service cloud.firestore {
       allow create, update, delete: if request.auth != null;
     }
 
+    // 알림 컬렉션
+    match /notifications/{notificationId} {
+      // 읽기: 본인 알림만
+      allow read: if request.auth != null
+                  && resource.data.userId == request.auth.uid;
+      // 생성: 로그인한 사용자
+      allow create: if request.auth != null;
+      // 수정/삭제: 본인 알림만
+      allow update, delete: if request.auth != null
+                            && resource.data.userId == request.auth.uid;
+    }
+
     // 마을 컬렉션
     match /villages/{villageId} {
       // 누구나 읽기 가능 (지구본에 마을 표시)
@@ -42,9 +54,11 @@ service cloud.firestore {
       match /players/{playerId} {
         // 읽기: 로그인한 사용자
         allow read: if request.auth != null;
-        // 쓰기/삭제: 본인만
-        allow create, update, delete: if request.auth != null
-                                      && request.auth.uid == playerId;
+        // 생성/수정: 본인만
+        allow create, update: if request.auth != null
+                              && request.auth.uid == playerId;
+        // 삭제: 로그인한 사용자 (stale player cleanup 허용)
+        allow delete: if request.auth != null;
       }
 
       // 주민 신청 서브컬렉션
@@ -53,7 +67,7 @@ service cloud.firestore {
         allow read: if request.auth != null;
         // 생성: 로그인한 사용자 (신청자 본인)
         allow create: if request.auth != null
-                      && request.resource.data.userId == request.auth.uid;
+                      && request.resource.data.requesterId == request.auth.uid;
         // 수정/삭제: 마을 주인만
         allow update, delete: if request.auth != null;
       }

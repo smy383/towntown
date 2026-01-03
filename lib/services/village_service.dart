@@ -1,10 +1,13 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/village_model.dart';
 import '../models/house_model.dart';
+import 'notification_service.dart';
 
 class VillageService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final NotificationService _notificationService = NotificationService();
 
   // 상수
   static const int gridSize = 10000;  // 10000 x 10000 = 1억 구역
@@ -294,7 +297,66 @@ class VillageService {
     return MembershipRequestResult.success;
   }
 
-  /// 주민 가입 승인
+  /// 주민 가입 승인 (위치 지정 포함)
+  /// 이장이 집 위치를 지정하면 7일 내에 집을 지어야 주민이 됨
+  Future<bool> approveMembershipWithLocation({
+    required String villageId,
+    required String requestId,
+    required String ownerId,
+    required double houseX,
+    required double houseY,
+  }) async {
+    debugPrint('[VillageService] approveMembershipWithLocation: villageId=$villageId, requestId=$requestId');
+
+    final villageDoc = await _firestore.collection('villages').doc(villageId).get();
+    if (!villageDoc.exists) return false;
+
+    final village = VillageModel.fromFirestore(villageDoc);
+    if (village.ownerId != ownerId) return false; // 이장만 승인 가능
+
+    final requestDoc = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .doc(requestId)
+        .get();
+
+    if (!requestDoc.exists) return false;
+
+    final request = MembershipRequest.fromFirestore(requestDoc);
+
+    // 7일 후 기한
+    final deadline = DateTime.now().add(const Duration(days: 7));
+
+    // 트랜잭션으로 승인 처리 (아직 members에 추가하지 않음)
+    await _firestore.runTransaction((transaction) async {
+      // 신청 상태를 approvedPendingHouse로 업데이트
+      transaction.update(requestDoc.reference, {
+        'status': MembershipRequestStatus.approvedPendingHouse.name,
+        'processedAt': FieldValue.serverTimestamp(),
+        'houseX': houseX,
+        'houseY': houseY,
+        'deadline': Timestamp.fromDate(deadline),
+        'villageName': village.name,
+      });
+    });
+
+    // 알림 생성
+    await _notificationService.notifyMembershipApproved(
+      userId: request.requesterId,
+      villageId: villageId,
+      villageName: village.name,
+      requestId: requestId,
+      houseX: houseX,
+      houseY: houseY,
+      deadline: deadline,
+    );
+
+    debugPrint('[VillageService] approveMembershipWithLocation: SUCCESS - deadline=$deadline');
+    return true;
+  }
+
+  /// 주민 가입 승인 (기존 메서드 - 즉시 승인용)
   Future<bool> approveMembership({
     required String villageId,
     required String requestId,
@@ -334,6 +396,165 @@ class VillageService {
     return true;
   }
 
+  /// 집 짓기 완료 - 주민 확정
+  Future<bool> completeMemberHouse({
+    required String villageId,
+    required String requestId,
+    required String userId,
+    required HouseModel house,
+  }) async {
+    debugPrint('[VillageService] completeMemberHouse: villageId=$villageId, requestId=$requestId');
+
+    final villageDoc = await _firestore.collection('villages').doc(villageId).get();
+    if (!villageDoc.exists) return false;
+
+    final requestDoc = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .doc(requestId)
+        .get();
+
+    if (!requestDoc.exists) return false;
+
+    final request = MembershipRequest.fromFirestore(requestDoc);
+
+    // 본인 요청인지 확인
+    if (request.requesterId != userId) return false;
+
+    // 승인 대기 상태인지 확인
+    if (request.status != MembershipRequestStatus.approvedPendingHouse) return false;
+
+    // 기한 확인
+    if (request.isExpired) {
+      debugPrint('[VillageService] completeMemberHouse: EXPIRED');
+      return false;
+    }
+
+    final villageRef = _firestore.collection('villages').doc(villageId);
+    final housesRef = villageRef.collection('houses');
+
+    // 트랜잭션으로 처리
+    await _firestore.runTransaction((transaction) async {
+      // 집 저장
+      final houseDocRef = housesRef.doc();
+      final houseWithId = house.copyWith(id: houseDocRef.id);
+      transaction.set(houseDocRef, houseWithId.toFirestore());
+
+      // 신청 상태를 approved로 업데이트
+      transaction.update(requestDoc.reference, {
+        'status': MembershipRequestStatus.approved.name,
+        'houseBuilt': true,
+      });
+
+      // 마을 멤버에 추가
+      transaction.update(villageRef, {
+        'members': FieldValue.arrayUnion([userId]),
+      });
+    });
+
+    debugPrint('[VillageService] completeMemberHouse: SUCCESS - member added');
+    return true;
+  }
+
+  /// 기한 만료된 신청 처리
+  Future<void> expireMembership({
+    required String villageId,
+    required String requestId,
+  }) async {
+    debugPrint('[VillageService] expireMembership: villageId=$villageId, requestId=$requestId');
+
+    final requestDoc = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .doc(requestId)
+        .get();
+
+    if (!requestDoc.exists) return;
+
+    final request = MembershipRequest.fromFirestore(requestDoc);
+
+    // 이미 처리되었거나 대기 중이 아니면 무시
+    if (request.status != MembershipRequestStatus.approvedPendingHouse) return;
+
+    // 상태를 expired로 업데이트
+    await requestDoc.reference.update({
+      'status': MembershipRequestStatus.expired.name,
+    });
+
+    // 알림 생성
+    await _notificationService.notifyMembershipExpired(
+      userId: request.requesterId,
+      villageName: request.villageName,
+    );
+
+    debugPrint('[VillageService] expireMembership: SUCCESS');
+  }
+
+  /// 집 짓기 대기 중인 신청 조회 (사용자용)
+  Future<List<MembershipRequest>> getPendingHouseRequests(String userId) async {
+    // 모든 마을에서 해당 사용자의 approvedPendingHouse 상태 신청 조회
+    final villagesSnapshot = await _firestore.collection('villages').get();
+
+    final List<MembershipRequest> pendingRequests = [];
+
+    for (final villageDoc in villagesSnapshot.docs) {
+      final requestsSnapshot = await villageDoc.reference
+          .collection('membershipRequests')
+          .where('requesterId', isEqualTo: userId)
+          .where('status', isEqualTo: MembershipRequestStatus.approvedPendingHouse.name)
+          .get();
+
+      for (final doc in requestsSnapshot.docs) {
+        final request = MembershipRequest.fromFirestore(doc);
+        // 기한이 지나지 않은 것만
+        if (!request.isExpired) {
+          pendingRequests.add(request);
+        }
+      }
+    }
+
+    return pendingRequests;
+  }
+
+  /// 마을의 집 짓기 대기 중인 신청 목록 (이장용)
+  Future<List<MembershipRequest>> getPendingHouseRequestsForVillage(String villageId) async {
+    final snapshot = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .where('status', isEqualTo: MembershipRequestStatus.approvedPendingHouse.name)
+        .orderBy('deadline')
+        .get();
+
+    return snapshot.docs
+        .map((doc) => MembershipRequest.fromFirestore(doc))
+        .toList();
+  }
+
+  /// 기한 만료된 신청들 일괄 처리
+  Future<void> processExpiredRequests(String villageId) async {
+    debugPrint('[VillageService] processExpiredRequests: villageId=$villageId');
+
+    final snapshot = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .where('status', isEqualTo: MembershipRequestStatus.approvedPendingHouse.name)
+        .get();
+
+    for (final doc in snapshot.docs) {
+      final request = MembershipRequest.fromFirestore(doc);
+      if (request.isExpired) {
+        await expireMembership(
+          villageId: villageId,
+          requestId: doc.id,
+        );
+      }
+    }
+  }
+
   /// 주민 가입 거절
   Future<bool> rejectMembership({
     required String villageId,
@@ -346,15 +567,27 @@ class VillageService {
     final village = VillageModel.fromFirestore(villageDoc);
     if (village.ownerId != ownerId) return false; // 이장만 거절 가능
 
-    await _firestore
+    final requestDoc = await _firestore
         .collection('villages')
         .doc(villageId)
         .collection('membershipRequests')
         .doc(requestId)
-        .update({
+        .get();
+
+    if (!requestDoc.exists) return false;
+
+    final request = MembershipRequest.fromFirestore(requestDoc);
+
+    await requestDoc.reference.update({
       'status': MembershipRequestStatus.rejected.name,
       'processedAt': FieldValue.serverTimestamp(),
     });
+
+    // 거절 알림 전송
+    await _notificationService.notifyMembershipRejected(
+      userId: request.requesterId,
+      villageName: village.name,
+    );
 
     return true;
   }
@@ -441,6 +674,20 @@ class VillageService {
     // 주민인 경우
     if (village.members.contains(userId)) {
       return UserMembershipStatus.member;
+    }
+
+    // 집 짓기 대기 중인지 확인
+    final pendingHouseRequest = await _firestore
+        .collection('villages')
+        .doc(villageId)
+        .collection('membershipRequests')
+        .where('requesterId', isEqualTo: userId)
+        .where('status', isEqualTo: MembershipRequestStatus.approvedPendingHouse.name)
+        .limit(1)
+        .get();
+
+    if (pendingHouseRequest.docs.isNotEmpty) {
+      return UserMembershipStatus.pendingHouse;
     }
 
     // 신청 중인지 확인
@@ -804,10 +1051,11 @@ enum MembershipInvitationResult {
 
 /// 사용자 주민 상태
 enum UserMembershipStatus {
-  none,     // 일반 방문자
-  pending,  // 가입 신청 중
-  member,   // 주민
-  owner,    // 이장 (마을 주인)
+  none,           // 일반 방문자
+  pending,        // 가입 신청 중
+  pendingHouse,   // 집 짓기 대기 중 (승인됨, 집 미완성)
+  member,         // 주민
+  owner,          // 이장 (마을 주인)
 }
 
 /// 내부 좌표 클래스

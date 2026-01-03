@@ -179,37 +179,69 @@ class VillageModel {
 
 /// 주민 가입 신청 상태
 enum MembershipRequestStatus {
-  pending,   // 대기 중
-  approved,  // 승인됨
-  rejected,  // 거절됨
+  pending,              // 대기 중
+  approvedPendingHouse, // 승인됨 - 집 짓기 대기
+  approved,             // 승인 완료 (집 완성)
+  rejected,             // 거절됨
+  expired,              // 기한 만료 (집 미완성)
 }
 
 /// 주민 가입 신청 모델
 class MembershipRequest {
   final String id;
   final String villageId;
+  final String villageName;
   final String requesterId;
   final String requesterName;
   final MembershipRequestStatus status;
   final DateTime createdAt;
   final DateTime? processedAt;
+  // 집 위치 (이장이 지정)
+  final double? houseX;
+  final double? houseY;
+  // 집 짓기 기한 (승인 후 7일)
+  final DateTime? deadline;
+  // 집 완성 여부
+  final bool houseBuilt;
 
   MembershipRequest({
     required this.id,
     required this.villageId,
+    this.villageName = '',
     required this.requesterId,
     required this.requesterName,
     required this.status,
     required this.createdAt,
     this.processedAt,
+    this.houseX,
+    this.houseY,
+    this.deadline,
+    this.houseBuilt = false,
   });
+
+  /// 기한이 지났는지 확인
+  bool get isExpired {
+    if (deadline == null) return false;
+    return DateTime.now().isAfter(deadline!);
+  }
+
+  /// 남은 일수
+  int get daysRemaining {
+    if (deadline == null) return 0;
+    final remaining = deadline!.difference(DateTime.now()).inDays;
+    return remaining > 0 ? remaining : 0;
+  }
+
+  /// 집 짓기 대기 상태인지
+  bool get isPendingHouse => status == MembershipRequestStatus.approvedPendingHouse;
 
   factory MembershipRequest.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return MembershipRequest(
       id: doc.id,
       villageId: data['villageId'] ?? '',
-      requesterId: data['requesterId'] ?? '',
+      villageName: data['villageName'] ?? '',
+      requesterId: data['requesterId'] ?? data['userId'] ?? '',
       requesterName: data['requesterName'] ?? '',
       status: MembershipRequestStatus.values.firstWhere(
         (e) => e.name == data['status'],
@@ -221,12 +253,19 @@ class MembershipRequest {
       processedAt: data['processedAt'] != null
           ? (data['processedAt'] as Timestamp).toDate()
           : null,
+      houseX: (data['houseX'] as num?)?.toDouble(),
+      houseY: (data['houseY'] as num?)?.toDouble(),
+      deadline: data['deadline'] != null
+          ? (data['deadline'] as Timestamp).toDate()
+          : null,
+      houseBuilt: data['houseBuilt'] ?? false,
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
       'villageId': villageId,
+      'villageName': villageName,
       'requesterId': requesterId,
       'requesterName': requesterName,
       'status': status.name,
@@ -234,7 +273,43 @@ class MembershipRequest {
       'processedAt': processedAt != null
           ? Timestamp.fromDate(processedAt!)
           : null,
+      'houseX': houseX,
+      'houseY': houseY,
+      'deadline': deadline != null
+          ? Timestamp.fromDate(deadline!)
+          : null,
+      'houseBuilt': houseBuilt,
     };
+  }
+
+  MembershipRequest copyWith({
+    String? id,
+    String? villageId,
+    String? villageName,
+    String? requesterId,
+    String? requesterName,
+    MembershipRequestStatus? status,
+    DateTime? createdAt,
+    DateTime? processedAt,
+    double? houseX,
+    double? houseY,
+    DateTime? deadline,
+    bool? houseBuilt,
+  }) {
+    return MembershipRequest(
+      id: id ?? this.id,
+      villageId: villageId ?? this.villageId,
+      villageName: villageName ?? this.villageName,
+      requesterId: requesterId ?? this.requesterId,
+      requesterName: requesterName ?? this.requesterName,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      processedAt: processedAt ?? this.processedAt,
+      houseX: houseX ?? this.houseX,
+      houseY: houseY ?? this.houseY,
+      deadline: deadline ?? this.deadline,
+      houseBuilt: houseBuilt ?? this.houseBuilt,
+    );
   }
 }
 

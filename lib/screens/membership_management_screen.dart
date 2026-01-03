@@ -6,6 +6,7 @@ import '../services/search_service.dart';
 import '../models/village_model.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
+import 'member_house_location_screen.dart';
 
 /// 이장용 주민 관리 화면
 class MembershipManagementScreen extends StatefulWidget {
@@ -69,26 +70,20 @@ class _MembershipManagementScreenState extends State<MembershipManagementScreen>
   }
 
   Future<void> _approveRequest(MembershipRequest request) async {
-    final authProvider = context.read<AuthProvider>();
-    final ownerId = authProvider.user?.uid;
-    final l10n = L10n.of(context)!;
-
-    if (ownerId == null) return;
-
-    final success = await _villageService.approveMembership(
-      villageId: widget.villageId,
-      requestId: request.id,
-      ownerId: ownerId,
+    // 위치 선택 화면으로 이동
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MemberHouseLocationScreen(
+          villageId: widget.villageId,
+          villageName: widget.villageName,
+          request: request,
+        ),
+      ),
     );
 
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.membershipApproved),
-          backgroundColor: Colors.greenAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    // 승인이 완료되면 목록 새로고침
+    if (result == true && mounted) {
       _loadData();
     }
   }
@@ -414,8 +409,8 @@ class _RequestCard extends StatelessWidget {
           ),
           IconButton(
             onPressed: onApprove,
-            icon: const Icon(Icons.check, color: Colors.greenAccent),
-            tooltip: l10n.membershipApprove,
+            icon: const Icon(Icons.home, color: Colors.greenAccent),
+            tooltip: l10n.approveWithLocation,
           ),
         ],
       ),

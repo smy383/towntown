@@ -362,4 +362,80 @@ class L10nEn extends L10n {
 
   @override
   String get currentVersion => 'Current Version';
+
+  @override
+  String get membershipPendingHouse => 'Pending House';
+
+  @override
+  String get approveWithLocation => 'Approve with location';
+
+  @override
+  String get selectMemberHouseLocation => 'Select member\'s house location';
+
+  @override
+  String get assignLocation => 'Assign Location';
+
+  @override
+  String get houseBuildDeadline => 'Build Deadline';
+
+  @override
+  String daysRemaining(Object days) {
+    return '$days days left';
+  }
+
+  @override
+  String get deadlineExpired => 'Deadline expired';
+
+  @override
+  String get buildYourHouse => 'Build your house';
+
+  @override
+  String buildHouseMessage(Object days, Object village) {
+    return 'You are now a member of $village! Please build your house within $days days.';
+  }
+
+  @override
+  String get goToBuildHouse => 'Build House';
+
+  @override
+  String get notificationTitle => 'Notifications';
+
+  @override
+  String get notificationEmpty => 'No notifications';
+
+  @override
+  String get markAllRead => 'Mark all read';
+
+  @override
+  String get membershipApprovedTitle => 'Membership Approved';
+
+  @override
+  String membershipApprovedMessage(Object village) {
+    return 'You are now a member of $village! Please build your house within 7 days.';
+  }
+
+  @override
+  String get membershipRejectedTitle => 'Membership Rejected';
+
+  @override
+  String membershipRejectedMessage(Object village) {
+    return 'Your membership request to $village was rejected.';
+  }
+
+  @override
+  String get membershipExpiredTitle => 'Build Deadline Expired';
+
+  @override
+  String membershipExpiredMessage(Object village) {
+    return 'Your membership to $village was cancelled due to not building a house in time.';
+  }
+
+  @override
+  String get pendingHouseRequests => 'Pending House Building';
+
+  @override
+  String get noPendingHouseRequests => 'No pending house build requests';
+
+  @override
+  String get memberHouseLocation => 'House location assigned';
 }

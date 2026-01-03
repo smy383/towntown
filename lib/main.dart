@@ -2887,7 +2887,20 @@ class _VillageLandState extends State<VillageLand>
                 behavior: HitTestBehavior.translucent,
                 onTapDown: (details) {
                   final tapPos = details.localPosition;
-                  // 캐릭터 영역은 캐릭터 자체의 GestureDetector가 처리
+                  // UI 영역은 무시 (상단 버튼들, 하단 채팅창)
+                  final safeTop = MediaQuery.of(context).padding.top;
+                  final safeBottom = MediaQuery.of(context).padding.bottom;
+                  final screenHeight = MediaQuery.of(context).size.height;
+
+                  // 상단 UI 영역 (나가기 버튼, 주민 버튼)
+                  if (tapPos.dy < safeTop + 70) {
+                    return; // UI 영역은 처리하지 않음
+                  }
+                  // 하단 채팅창 영역
+                  if (tapPos.dy > screenHeight - safeBottom - 80) {
+                    return;
+                  }
+
                   _hideEditButton();
                   if (_isRunningMode) {
                     _stopRunning();
@@ -2896,6 +2909,14 @@ class _VillageLandState extends State<VillageLand>
                 },
                 onLongPressStart: (details) {
                   final tapPos = details.localPosition;
+                  // UI 영역은 무시
+                  final safeTop = MediaQuery.of(context).padding.top;
+                  final safeBottom = MediaQuery.of(context).padding.bottom;
+                  final screenHeight = MediaQuery.of(context).size.height;
+
+                  if (tapPos.dy < safeTop + 70) return;
+                  if (tapPos.dy > screenHeight - safeBottom - 80) return;
+
                   _hideEditButton();
                   _startRunning(tapPos);
                 },
@@ -3159,8 +3180,11 @@ class _VillageLandState extends State<VillageLand>
               Positioned(
                 right: 16,
                 top: MediaQuery.of(context).padding.top + 16,
-                child: MembershipButton(
-                  villageId: widget.villageId!,
+                child: Material(
+                  color: Colors.transparent,
+                  child: MembershipButton(
+                    villageId: widget.villageId!,
+                  ),
                 ),
               ),
 

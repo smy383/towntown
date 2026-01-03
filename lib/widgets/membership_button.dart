@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
@@ -5,6 +6,7 @@ import '../services/village_service.dart';
 import '../models/village_model.dart';
 import '../providers/auth_provider.dart';
 import '../screens/membership_management_screen.dart';
+import '../screens/member_house_design_screen.dart';
 
 /// 마을 화면에 표시되는 주민 상태/신청 버튼
 class MembershipButton extends StatefulWidget {
@@ -25,6 +27,7 @@ class _MembershipButtonState extends State<MembershipButton> {
   final VillageService _villageService = VillageService();
   UserMembershipStatus _status = UserMembershipStatus.none;
   VillageModel? _village;
+  MembershipRequest? _pendingHouseRequest;
   int _pendingRequestsCount = 0;
   bool _isLoading = true;
 
@@ -48,15 +51,32 @@ class _MembershipButtonState extends State<MembershipButton> {
 
       // 이장인 경우 대기 중인 신청 수 가져오기
       int pendingCount = 0;
+      MembershipRequest? pendingHouseRequest;
+
       if (status == UserMembershipStatus.owner) {
         final requests = await _villageService.getPendingRequests(widget.villageId);
         pendingCount = requests.length;
+      } else if (status == UserMembershipStatus.pendingHouse) {
+        // 집 짓기 대기 중인 경우 해당 신청 정보 로드
+        final requests = await _villageService.getPendingHouseRequests(userId);
+        pendingHouseRequest = requests.firstWhere(
+          (r) => r.villageId == widget.villageId,
+          orElse: () => requests.isNotEmpty ? requests.first : MembershipRequest(
+            id: '',
+            villageId: widget.villageId,
+            requesterId: userId,
+            requesterName: '',
+            status: MembershipRequestStatus.pending,
+            createdAt: DateTime.now(),
+          ),
+        );
       }
 
       if (mounted) {
         setState(() {
           _status = status;
           _village = village;
+          _pendingHouseRequest = pendingHouseRequest;
           _pendingRequestsCount = pendingCount;
           _isLoading = false;
         });
@@ -69,11 +89,13 @@ class _MembershipButtonState extends State<MembershipButton> {
   }
 
   Future<void> _requestMembership() async {
+    debugPrint('[MembershipButton] _requestMembership called');
     final authProvider = context.read<AuthProvider>();
     final userId = authProvider.user?.uid;
     final userName = authProvider.user?.displayName ?? 'Unknown';
     final l10n = L10n.of(context)!;
 
+    debugPrint('[MembershipButton] userId=$userId, userName=$userName');
     if (userId == null) return;
 
     final result = await _villageService.requestMembership(
@@ -192,6 +214,8 @@ class _MembershipButtonState extends State<MembershipButton> {
         return _buildMemberButton(l10n);
       case UserMembershipStatus.pending:
         return _buildPendingButton(l10n);
+      case UserMembershipStatus.pendingHouse:
+        return _buildPendingHouseButton(l10n);
       case UserMembershipStatus.none:
         return _buildRequestButton(l10n);
     }
@@ -199,8 +223,9 @@ class _MembershipButtonState extends State<MembershipButton> {
 
   /// 이장 버튼 (관리 화면으로 이동)
   Widget _buildOwnerButton(L10n l10n) {
-    return GestureDetector(
+    return InkWell(
       onTap: _openManagementScreen,
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
@@ -253,8 +278,9 @@ class _MembershipButtonState extends State<MembershipButton> {
 
   /// 주민 버튼
   Widget _buildMemberButton(L10n l10n) {
-    return GestureDetector(
+    return InkWell(
       onTap: _leaveMembership,
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
@@ -308,10 +334,83 @@ class _MembershipButtonState extends State<MembershipButton> {
     );
   }
 
+  /// 집 짓기 화면으로 이동
+  void _goToBuildHouse() {
+    if (_pendingHouseRequest == null ||
+        _pendingHouseRequest!.houseX == null ||
+        _pendingHouseRequest!.houseY == null ||
+        _pendingHouseRequest!.deadline == null) {
+      // 정보가 없으면 스낵바 표시
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('집 짓기 정보를 불러올 수 없습니다.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MemberHouseDesignScreen(
+          villageId: _pendingHouseRequest!.villageId,
+          villageName: _village?.name ?? '',
+          requestId: _pendingHouseRequest!.id,
+          houseX: _pendingHouseRequest!.houseX!,
+          houseY: _pendingHouseRequest!.houseY!,
+          deadline: _pendingHouseRequest!.deadline!,
+        ),
+      ),
+    ).then((_) {
+      if (mounted) _loadStatus();
+    });
+  }
+
+  /// 집 짓기 대기 중 버튼
+  Widget _buildPendingHouseButton(L10n l10n) {
+    return InkWell(
+      onTap: _goToBuildHouse,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.pinkAccent.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.pinkAccent.withValues(alpha: 0.6)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.pinkAccent.withValues(alpha: 0.3),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.home_work, color: Colors.pinkAccent, size: 16),
+            const SizedBox(width: 4),
+            Text(
+              l10n.membershipPendingHouse,
+              style: const TextStyle(
+                color: Colors.pinkAccent,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.arrow_forward_ios, color: Colors.pinkAccent, size: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// 주민 신청 버튼
   Widget _buildRequestButton(L10n l10n) {
-    return GestureDetector(
+    return InkWell(
       onTap: _requestMembership,
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(

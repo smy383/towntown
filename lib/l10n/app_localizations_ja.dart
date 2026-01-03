@@ -361,4 +361,80 @@ class L10nJa extends L10n {
 
   @override
   String get currentVersion => '現在のバージョン';
+
+  @override
+  String get membershipPendingHouse => '家建築待機';
+
+  @override
+  String get approveWithLocation => '位置指定後承認';
+
+  @override
+  String get selectMemberHouseLocation => '住民の家の位置を選択してください';
+
+  @override
+  String get assignLocation => '位置指定';
+
+  @override
+  String get houseBuildDeadline => '家建築期限';
+
+  @override
+  String daysRemaining(Object days) {
+    return '残り$days日';
+  }
+
+  @override
+  String get deadlineExpired => '期限切れ';
+
+  @override
+  String get buildYourHouse => '家を建ててください';
+
+  @override
+  String buildHouseMessage(Object days, Object village) {
+    return '$village村の住民になりました！$days日以内に家を建ててください。';
+  }
+
+  @override
+  String get goToBuildHouse => '家を建てる';
+
+  @override
+  String get notificationTitle => '通知';
+
+  @override
+  String get notificationEmpty => '通知がありません';
+
+  @override
+  String get markAllRead => 'すべて既読';
+
+  @override
+  String get membershipApprovedTitle => '住民申請承認';
+
+  @override
+  String membershipApprovedMessage(Object village) {
+    return '$village村の住民になりました！7日以内に家を建ててください。';
+  }
+
+  @override
+  String get membershipRejectedTitle => '住民申請拒否';
+
+  @override
+  String membershipRejectedMessage(Object village) {
+    return '$village村の住民申請が拒否されました。';
+  }
+
+  @override
+  String get membershipExpiredTitle => '家建築期限切れ';
+
+  @override
+  String membershipExpiredMessage(Object village) {
+    return '$village村の家建築期限が切れたため、住民資格がキャンセルされました。';
+  }
+
+  @override
+  String get pendingHouseRequests => '家建築待機中';
+
+  @override
+  String get noPendingHouseRequests => '家建築待機中の申請がありません';
+
+  @override
+  String get memberHouseLocation => '家の位置が指定されました';
 }

@@ -6,8 +6,10 @@ import 'town_screen.dart';
 import 'settings_screen.dart';
 import 'create_village_screen.dart';
 import 'my_village_screen.dart';
+import 'notifications_screen.dart';
 import '../providers/auth_provider.dart';
 import '../services/village_service.dart';
+import '../services/notification_service.dart';
 import '../l10n/app_localizations.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -23,6 +25,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   AnimationController? _flickerController;
   Animation<double>? _flickerAnimation;
   bool _isAnimating = false;
+  int _unreadNotifications = 0;
+  final NotificationService _notificationService = NotificationService();
 
   final List<Color> _tabColors = [
     Colors.cyanAccent,
@@ -57,6 +61,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     _flickerController!.addListener(() {
       if (mounted) setState(() {});
     });
+
+    // 알림 개수 로드
+    _loadUnreadCount();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    final authProvider = context.read<AuthProvider>();
+    final userId = authProvider.user?.uid;
+    if (userId == null) return;
+
+    final count = await _notificationService.getUnreadCount(userId);
+    if (mounted) {
+      setState(() => _unreadNotifications = count);
+    }
   }
 
   @override
@@ -92,7 +110,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
               : 1.0,
         ),
         centerTitle: true,
-        actions: _currentIndex == 2 ? _buildTownActions(context) : null,
+        actions: _buildActions(context),
       ),
       body: IndexedStack(
         index: _currentIndex,
@@ -229,51 +247,123 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     }
   }
 
-  List<Widget> _buildTownActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: Icon(
-          Icons.home,
-          color: Colors.redAccent,
-          shadows: [
-            Shadow(
-              color: Colors.redAccent.withOpacity(0.8),
-              blurRadius: 8,
-            ),
-            Shadow(
-              color: Colors.redAccent.withOpacity(0.5),
-              blurRadius: 16,
-            ),
-          ],
+  List<Widget> _buildActions(BuildContext context) {
+    final actions = <Widget>[];
+
+    // 마을 탭인 경우 마을 관련 버튼 추가
+    if (_currentIndex == 2) {
+      actions.addAll([
+        IconButton(
+          icon: Icon(
+            Icons.home,
+            color: Colors.redAccent,
+            shadows: [
+              Shadow(
+                color: Colors.redAccent.withOpacity(0.8),
+                blurRadius: 8,
+              ),
+              Shadow(
+                color: Colors.redAccent.withOpacity(0.5),
+                blurRadius: 16,
+              ),
+            ],
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MyVillageScreen(),
+              ),
+            );
+          },
         ),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MyVillageScreen(),
-            ),
-          );
-        },
-      ),
-      IconButton(
-        icon: Icon(
-          Icons.add,
-          color: Colors.greenAccent,
-          shadows: [
-            Shadow(
-              color: Colors.greenAccent.withOpacity(0.8),
-              blurRadius: 8,
-            ),
-            Shadow(
-              color: Colors.greenAccent.withOpacity(0.5),
-              blurRadius: 16,
-            ),
-          ],
+        IconButton(
+          icon: Icon(
+            Icons.add,
+            color: Colors.greenAccent,
+            shadows: [
+              Shadow(
+                color: Colors.greenAccent.withOpacity(0.8),
+                blurRadius: 8,
+              ),
+              Shadow(
+                color: Colors.greenAccent.withOpacity(0.5),
+                blurRadius: 16,
+              ),
+            ],
+          ),
+          onPressed: () => _onCreateVillagePressed(context),
         ),
-        onPressed: () => _onCreateVillagePressed(context),
+      ]);
+    }
+
+    // 알림 버튼 (모든 탭에서 표시)
+    actions.add(
+      Stack(
+        children: [
+          IconButton(
+            icon: Icon(
+              Icons.notifications_outlined,
+              color: Colors.pinkAccent,
+              shadows: [
+                Shadow(
+                  color: Colors.pinkAccent.withOpacity(0.8),
+                  blurRadius: 8,
+                ),
+                Shadow(
+                  color: Colors.pinkAccent.withOpacity(0.5),
+                  blurRadius: 16,
+                ),
+              ],
+            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsScreen(),
+                ),
+              );
+              // 알림 화면에서 돌아오면 개수 새로고침
+              _loadUnreadCount();
+            },
+          ),
+          if (_unreadNotifications > 0)
+            Positioned(
+              right: 6,
+              top: 6,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.redAccent.withOpacity(0.5),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                child: Text(
+                  _unreadNotifications > 9 ? '9+' : '$_unreadNotifications',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+        ],
       ),
-      const SizedBox(width: 8),
-    ];
+    );
+
+    actions.add(const SizedBox(width: 8));
+    return actions;
   }
 }
 

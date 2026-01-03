@@ -361,4 +361,80 @@ class L10nKo extends L10n {
 
   @override
   String get currentVersion => '현재 버전';
+
+  @override
+  String get membershipPendingHouse => '집 짓기 대기';
+
+  @override
+  String get approveWithLocation => '위치 지정 후 승인';
+
+  @override
+  String get selectMemberHouseLocation => '주민 집 위치를 선택하세요';
+
+  @override
+  String get assignLocation => '위치 지정';
+
+  @override
+  String get houseBuildDeadline => '집 짓기 기한';
+
+  @override
+  String daysRemaining(Object days) {
+    return '$days일 남음';
+  }
+
+  @override
+  String get deadlineExpired => '기한 만료';
+
+  @override
+  String get buildYourHouse => '집을 지어주세요';
+
+  @override
+  String buildHouseMessage(Object days, Object village) {
+    return '$village 마을의 주민이 되었습니다! $days일 내에 집을 지어주세요.';
+  }
+
+  @override
+  String get goToBuildHouse => '집 짓기';
+
+  @override
+  String get notificationTitle => '알림';
+
+  @override
+  String get notificationEmpty => '알림이 없습니다';
+
+  @override
+  String get markAllRead => '모두 읽음';
+
+  @override
+  String get membershipApprovedTitle => '주민 신청 승인';
+
+  @override
+  String membershipApprovedMessage(Object village) {
+    return '$village 마을의 주민이 되었습니다! 7일 내에 집을 지어주세요.';
+  }
+
+  @override
+  String get membershipRejectedTitle => '주민 신청 거절';
+
+  @override
+  String membershipRejectedMessage(Object village) {
+    return '$village 마을의 주민 신청이 거절되었습니다.';
+  }
+
+  @override
+  String get membershipExpiredTitle => '집 짓기 기한 만료';
+
+  @override
+  String membershipExpiredMessage(Object village) {
+    return '$village 마을의 집 짓기 기한이 만료되어 주민 자격이 취소되었습니다.';
+  }
+
+  @override
+  String get pendingHouseRequests => '집 짓기 대기 중';
+
+  @override
+  String get noPendingHouseRequests => '집 짓기 대기 중인 신청이 없습니다';
+
+  @override
+  String get memberHouseLocation => '집 위치가 지정되었습니다';
 }
