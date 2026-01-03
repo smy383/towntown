@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인정보처리방침 - NeonTown</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.8;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        h1 {
+            color: #00ffff;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 40px;
+        }
+        h2 {
+            color: #ff69b4;
+            font-size: 1.3rem;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+        h3 {
+            color: #9370db;
+            font-size: 1.1rem;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        p, li {
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #1a1a1a;
+            color: #00ffff;
+        }
+        td {
+            background-color: #111;
+        }
+        .highlight {
+            background-color: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #00ffff;
+            margin: 20px 0;
+        }
+        .contact-info {
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .lang-switch {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .lang-switch a {
+            color: #00ffff;
+            text-decoration: none;
+            padding: 5px 15px;
+            border: 1px solid #00ffff;
+            border-radius: 20px;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+        .lang-switch a:hover, .lang-switch a.active {
+            background-color: #00ffff;
+            color: #000;
+        }
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            text-align: center;
+            color: #666;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .logo span:first-child {
+            color: #9370db;
+        }
+        .logo span:last-child {
+            color: #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lang-switch">
+            <a href="#" class="active" onclick="showKorean()">한국어</a>
+            <a href="#" onclick="showEnglish()">English</a>
+            <a href="#" onclick="showJapanese()">日本語</a>
+        </div>
+
+        <div class="logo">
+            <span>NEON</span><span>TOWN</span>
+        </div>
+
+        <!-- Korean Version -->
+        <div id="content-ko">
+            <h1>개인정보처리방침</h1>
+            <p class="subtitle">시행일: 2025년 1월 3일 | 최종 수정일: 2025년 1월 3일</p>
+
+            <p>NeonTown(이하 "서비스")은 이용자의 개인정보를 중요하게 생각하며, 「개인정보 보호법」 및 관련 법령을 준수하고 있습니다. 본 개인정보처리방침은 서비스 이용 시 수집되는 개인정보와 그 처리에 관한 사항을 안내합니다.</p>
+
+            <h2>1. 수집하는 개인정보 항목</h2>
+
+            <h3>1.1 필수 수집 항목</h3>
+            <table>
+                <tr>
+                    <th>수집 항목</th>
+                    <th>수집 목적</th>
+                    <th>보유 기간</th>
+                </tr>
+                <tr>
+                    <td>이메일 주소</td>
+                    <td>회원 식별 및 로그인</td>
+                    <td>회원 탈퇴 시까지</td>
+                </tr>
+                <tr>
+                    <td>닉네임(표시 이름)</td>
+                    <td>서비스 내 사용자 식별</td>
+                    <td>회원 탈퇴 시까지</td>
+                </tr>
+                <tr>
+                    <td>프로필 사진 URL</td>
+                    <td>프로필 표시</td>
+                    <td>회원 탈퇴 시까지</td>
+                </tr>
+                <tr>
+                    <td>고유 사용자 ID</td>
+                    <td>서비스 이용 기록 관리</td>
+                    <td>회원 탈퇴 시까지</td>
+                </tr>
+            </table>
+
+            <h3>1.2 서비스 이용 과정에서 생성되는 정보</h3>
+            <ul>
+                <li>캐릭터 정보 (이름, 외형 데이터)</li>
+                <li>마을 정보 (마을 이름, 위치, 설정)</li>
+                <li>집 정보 (위치, 외형 데이터)</li>
+                <li>채팅 메시지</li>
+                <li>서비스 이용 기록 (접속 시간, 활동 내역)</li>
+            </ul>
+
+            <h2>2. 개인정보 수집 방법</h2>
+            <ul>
+                <li>소셜 로그인 (Google) 연동 시 자동 수집</li>
+                <li>서비스 이용 과정에서 이용자가 직접 입력</li>
+            </ul>
+
+            <h2>3. 개인정보의 이용 목적</h2>
+            <ul>
+                <li>회원 가입 및 관리: 회원 식별, 본인 확인, 서비스 제공</li>
+                <li>서비스 제공: 마을 생성/관리, 캐릭터 관리, 멀티플레이어 기능</li>
+                <li>커뮤니케이션: 채팅, 알림 발송</li>
+                <li>서비스 개선: 이용 통계 분석, 서비스 품질 향상</li>
+            </ul>
+
+            <h2>4. 개인정보의 보유 및 이용 기간</h2>
+            <p>이용자의 개인정보는 원칙적으로 개인정보 수집 및 이용 목적이 달성되면 지체 없이 파기합니다.</p>
+            <div class="highlight">
+                <strong>보유 기간:</strong> 회원 탈퇴 시까지<br>
+                <strong>예외:</strong> 관련 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관
+            </div>
+
+            <h2>5. 개인정보의 제3자 제공</h2>
+            <p>서비스는 원칙적으로 이용자의 개인정보를 제3자에게 제공하지 않습니다. 다만, 다음의 경우는 예외로 합니다:</p>
+            <ul>
+                <li>이용자가 사전에 동의한 경우</li>
+                <li>법령의 규정에 의거하거나, 수사 목적으로 법령에 정해진 절차와 방법에 따라 수사기관의 요구가 있는 경우</li>
+            </ul>
+
+            <h2>6. 개인정보의 처리 위탁</h2>
+            <table>
+                <tr>
+                    <th>수탁 업체</th>
+                    <th>위탁 업무</th>
+                </tr>
+                <tr>
+                    <td>Google Firebase</td>
+                    <td>클라우드 서버 운영, 데이터베이스 관리, 사용자 인증</td>
+                </tr>
+            </table>
+
+            <h2>7. 이용자의 권리와 행사 방법</h2>
+            <p>이용자는 언제든지 다음의 권리를 행사할 수 있습니다:</p>
+            <ul>
+                <li>개인정보 열람 요구</li>
+                <li>오류 등이 있을 경우 정정 요구</li>
+                <li>삭제 요구</li>
+                <li>처리 정지 요구</li>
+            </ul>
+            <p>권리 행사는 서비스 내 설정 메뉴 또는 아래 연락처를 통해 가능합니다.</p>
+
+            <h2>8. 개인정보의 파기</h2>
+            <h3>8.1 파기 절차</h3>
+            <p>이용자의 개인정보는 목적 달성 후 별도의 DB에 옮겨져 내부 방침 및 관련 법령에 따라 일정 기간 저장된 후 파기됩니다.</p>
+
+            <h3>8.2 파기 방법</h3>
+            <ul>
+                <li>전자적 파일: 복구 불가능한 방법으로 영구 삭제</li>
+                <li>기록물: 분쇄 또는 소각</li>
+            </ul>
+
+            <h2>9. 개인정보 보호를 위한 기술적/관리적 대책</h2>
+            <ul>
+                <li>데이터 암호화: 중요 개인정보는 암호화하여 저장</li>
+                <li>접근 통제: 개인정보 접근 권한 최소화</li>
+                <li>보안 프로그램: Firebase Security Rules를 통한 접근 제어</li>
+            </ul>
+
+            <h2>10. 쿠키(Cookie) 사용</h2>
+            <p>서비스는 이용자 인증 및 세션 유지를 위해 쿠키를 사용할 수 있습니다. 이용자는 브라우저 설정을 통해 쿠키 저장을 거부할 수 있으나, 이 경우 서비스 이용에 제한이 있을 수 있습니다.</p>
+
+            <h2>11. 개인정보 보호책임자</h2>
+            <div class="contact-info">
+                <p><strong>개인정보 보호책임자</strong></p>
+                <p>이메일: privacy@neontown.app</p>
+                <p>* 개인정보 관련 문의사항은 위 이메일로 연락주시기 바랍니다.</p>
+            </div>
+
+            <h2>12. 개인정보처리방침 변경</h2>
+            <p>본 개인정보처리방침은 법령 및 서비스 변경에 따라 수정될 수 있으며, 변경 시 서비스 내 공지사항을 통해 안내합니다.</p>
+
+            <div class="footer">
+                <p>&copy; 2025 NeonTown. All rights reserved.</p>
+            </div>
+        </div>
+
+        <!-- English Version -->
+        <div id="content-en" style="display: none;">
+            <h1>Privacy Policy</h1>
+            <p class="subtitle">Effective Date: January 3, 2025 | Last Updated: January 3, 2025</p>
+
+            <p>NeonTown ("Service") values your privacy and complies with applicable privacy laws and regulations. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Service.</p>
+
+            <h2>1. Information We Collect</h2>
+
+            <h3>1.1 Required Information</h3>
+            <table>
+                <tr>
+                    <th>Information</th>
+                    <th>Purpose</th>
+                    <th>Retention Period</th>
+                </tr>
+                <tr>
+                    <td>Email Address</td>
+                    <td>User identification and login</td>
+                    <td>Until account deletion</td>
+                </tr>
+                <tr>
+                    <td>Display Name</td>
+                    <td>In-service user identification</td>
+                    <td>Until account deletion</td>
+                </tr>
+                <tr>
+                    <td>Profile Photo URL</td>
+                    <td>Profile display</td>
+                    <td>Until account deletion</td>
+                </tr>
+                <tr>
+                    <td>Unique User ID</td>
+                    <td>Service usage record management</td>
+                    <td>Until account deletion</td>
+                </tr>
+            </table>
+
+            <h3>1.2 Information Generated During Service Use</h3>
+            <ul>
+                <li>Character information (name, appearance data)</li>
+                <li>Village information (name, location, settings)</li>
+                <li>House information (location, appearance data)</li>
+                <li>Chat messages</li>
+                <li>Service usage logs (access time, activity history)</li>
+            </ul>
+
+            <h2>2. How We Collect Information</h2>
+            <ul>
+                <li>Automatic collection through social login (Google) integration</li>
+                <li>Direct input by users during service use</li>
+            </ul>
+
+            <h2>3. How We Use Your Information</h2>
+            <ul>
+                <li>Account Management: User identification, authentication, service provision</li>
+                <li>Service Provision: Village creation/management, character management, multiplayer features</li>
+                <li>Communication: Chat, notifications</li>
+                <li>Service Improvement: Usage statistics analysis, quality enhancement</li>
+            </ul>
+
+            <h2>4. Retention Period</h2>
+            <p>Your personal information is retained until you delete your account, unless otherwise required by law.</p>
+            <div class="highlight">
+                <strong>Retention Period:</strong> Until account deletion<br>
+                <strong>Exception:</strong> As required by applicable laws
+            </div>
+
+            <h2>5. Third-Party Disclosure</h2>
+            <p>We do not share your personal information with third parties except in the following cases:</p>
+            <ul>
+                <li>With your prior consent</li>
+                <li>When required by law or legal process</li>
+            </ul>
+
+            <h2>6. Service Providers</h2>
+            <table>
+                <tr>
+                    <th>Provider</th>
+                    <th>Service</th>
+                </tr>
+                <tr>
+                    <td>Google Firebase</td>
+                    <td>Cloud server operation, database management, user authentication</td>
+                </tr>
+            </table>
+
+            <h2>7. Your Rights</h2>
+            <p>You have the right to:</p>
+            <ul>
+                <li>Access your personal information</li>
+                <li>Request correction of errors</li>
+                <li>Request deletion</li>
+                <li>Request suspension of processing</li>
+            </ul>
+            <p>You can exercise these rights through the Settings menu or by contacting us.</p>
+
+            <h2>8. Data Deletion</h2>
+            <h3>8.1 Deletion Process</h3>
+            <p>Your personal information will be deleted after the purpose of collection is achieved, following our internal policies and applicable laws.</p>
+
+            <h3>8.2 Deletion Methods</h3>
+            <ul>
+                <li>Electronic files: Permanently deleted using irrecoverable methods</li>
+                <li>Physical records: Shredded or incinerated</li>
+            </ul>
+
+            <h2>9. Security Measures</h2>
+            <ul>
+                <li>Data Encryption: Important personal information is encrypted</li>
+                <li>Access Control: Minimized access to personal information</li>
+                <li>Security Programs: Access control through Firebase Security Rules</li>
+            </ul>
+
+            <h2>10. Cookies</h2>
+            <p>We may use cookies for authentication and session management. You can refuse cookies through your browser settings, but this may limit your use of the Service.</p>
+
+            <h2>11. Contact Us</h2>
+            <div class="contact-info">
+                <p><strong>Privacy Officer</strong></p>
+                <p>Email: privacy@neontown.app</p>
+                <p>* For privacy-related inquiries, please contact us via email.</p>
+            </div>
+
+            <h2>12. Changes to This Policy</h2>
+            <p>This Privacy Policy may be updated due to changes in laws or services. We will notify you of any changes through the Service.</p>
+
+            <div class="footer">
+                <p>&copy; 2025 NeonTown. All rights reserved.</p>
+            </div>
+        </div>
+
+        <!-- Japanese Version -->
+        <div id="content-ja" style="display: none;">
+            <h1>プライバシーポリシー</h1>
+            <p class="subtitle">施行日：2025年1月3日 | 最終更新日：2025年1月3日</p>
+
+            <p>NeonTown（以下「サービス」）は、ユーザーの個人情報を重要視し、関連法令を遵守しています。本プライバシーポリシーは、サービス利用時に収集される個人情報とその取り扱いについて説明します。</p>
+
+            <h2>1. 収集する個人情報</h2>
+
+            <h3>1.1 必須収集項目</h3>
+            <table>
+                <tr>
+                    <th>収集項目</th>
+                    <th>収集目的</th>
+                    <th>保持期間</th>
+                </tr>
+                <tr>
+                    <td>メールアドレス</td>
+                    <td>会員識別およびログイン</td>
+                    <td>退会時まで</td>
+                </tr>
+                <tr>
+                    <td>ニックネーム</td>
+                    <td>サービス内ユーザー識別</td>
+                    <td>退会時まで</td>
+                </tr>
+                <tr>
+                    <td>プロフィール写真URL</td>
+                    <td>プロフィール表示</td>
+                    <td>退会時まで</td>
+                </tr>
+                <tr>
+                    <td>固有ユーザーID</td>
+                    <td>サービス利用記録管理</td>
+                    <td>退会時まで</td>
+                </tr>
+            </table>
+
+            <h3>1.2 サービス利用過程で生成される情報</h3>
+            <ul>
+                <li>キャラクター情報（名前、外見データ）</li>
+                <li>村情報（村名、位置、設定）</li>
+                <li>家情報（位置、外見データ）</li>
+                <li>チャットメッセージ</li>
+                <li>サービス利用記録（接続時間、活動履歴）</li>
+            </ul>
+
+            <h2>2. 個人情報の収集方法</h2>
+            <ul>
+                <li>ソーシャルログイン（Google）連携時の自動収集</li>
+                <li>サービス利用過程でユーザーが直接入力</li>
+            </ul>
+
+            <h2>3. 個人情報の利用目的</h2>
+            <ul>
+                <li>会員管理：会員識別、本人確認、サービス提供</li>
+                <li>サービス提供：村の作成/管理、キャラクター管理、マルチプレイヤー機能</li>
+                <li>コミュニケーション：チャット、通知送信</li>
+                <li>サービス改善：利用統計分析、品質向上</li>
+            </ul>
+
+            <h2>4. 個人情報の保持期間</h2>
+            <p>ユーザーの個人情報は、収集目的が達成された後、遅滞なく破棄されます。</p>
+            <div class="highlight">
+                <strong>保持期間：</strong>退会時まで<br>
+                <strong>例外：</strong>関連法令により保存が必要な場合、該当期間中保管
+            </div>
+
+            <h2>5. 個人情報の第三者提供</h2>
+            <p>サービスは原則としてユーザーの個人情報を第三者に提供しません。ただし、以下の場合は例外とします：</p>
+            <ul>
+                <li>ユーザーが事前に同意した場合</li>
+                <li>法令の規定により、または捜査目的で法令に定められた手続きに従って捜査機関の要求がある場合</li>
+            </ul>
+
+            <h2>6. 個人情報の処理委託</h2>
+            <table>
+                <tr>
+                    <th>受託業者</th>
+                    <th>委託業務</th>
+                </tr>
+                <tr>
+                    <td>Google Firebase</td>
+                    <td>クラウドサーバー運営、データベース管理、ユーザー認証</td>
+                </tr>
+            </table>
+
+            <h2>7. ユーザーの権利と行使方法</h2>
+            <p>ユーザーはいつでも以下の権利を行使できます：</p>
+            <ul>
+                <li>個人情報の閲覧要求</li>
+                <li>誤りがある場合の訂正要求</li>
+                <li>削除要求</li>
+                <li>処理停止要求</li>
+            </ul>
+            <p>権利の行使は、サービス内の設定メニューまたは下記連絡先を通じて可能です。</p>
+
+            <h2>8. 個人情報の破棄</h2>
+            <h3>8.1 破棄手続き</h3>
+            <p>ユーザーの個人情報は目的達成後、別のDBに移され、内部方針および関連法令に従い一定期間保存された後、破棄されます。</p>
+
+            <h3>8.2 破棄方法</h3>
+            <ul>
+                <li>電子ファイル：復元不可能な方法で永久削除</li>
+                <li>記録物：シュレッダーまたは焼却</li>
+            </ul>
+
+            <h2>9. 個人情報保護のための技術的/管理的対策</h2>
+            <ul>
+                <li>データ暗号化：重要な個人情報は暗号化して保存</li>
+                <li>アクセス制御：個人情報へのアクセス権限最小化</li>
+                <li>セキュリティプログラム：Firebase Security Rulesによるアクセス制御</li>
+            </ul>
+
+            <h2>10. クッキー（Cookie）の使用</h2>
+            <p>サービスはユーザー認証およびセッション維持のためにクッキーを使用する場合があります。ユーザーはブラウザ設定を通じてクッキーの保存を拒否できますが、その場合サービス利用に制限がある可能性があります。</p>
+
+            <h2>11. 個人情報保護責任者</h2>
+            <div class="contact-info">
+                <p><strong>個人情報保護責任者</strong></p>
+                <p>メール：privacy@neontown.app</p>
+                <p>※個人情報に関するお問い合わせは上記メールにご連絡ください。</p>
+            </div>
+
+            <h2>12. プライバシーポリシーの変更</h2>
+            <p>本プライバシーポリシーは法令およびサービスの変更により修正される場合があり、変更時はサービス内のお知らせを通じてご案内します。</p>
+
+            <div class="footer">
+                <p>&copy; 2025 NeonTown. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showKorean() {
+            document.getElementById('content-ko').style.display = 'block';
+            document.getElementById('content-en').style.display = 'none';
+            document.getElementById('content-ja').style.display = 'none';
+            updateActiveLink(0);
+        }
+        function showEnglish() {
+            document.getElementById('content-ko').style.display = 'none';
+            document.getElementById('content-en').style.display = 'block';
+            document.getElementById('content-ja').style.display = 'none';
+            updateActiveLink(1);
+        }
+        function showJapanese() {
+            document.getElementById('content-ko').style.display = 'none';
+            document.getElementById('content-en').style.display = 'none';
+            document.getElementById('content-ja').style.display = 'block';
+            updateActiveLink(2);
+        }
+        function updateActiveLink(index) {
+            const links = document.querySelectorAll('.lang-switch a');
+            links.forEach((link, i) => {
+                if (i === index) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
