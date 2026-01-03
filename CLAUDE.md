@@ -102,7 +102,9 @@ lib/
 ├── models/
 │   ├── user_model.dart
 │   ├── village_model.dart       # 마을 + MembershipRequest + MembershipInvitation 모델
-│   └── chat_model.dart          # 채팅 모델 (ChatMessage, ChatRoom)
+│   ├── chat_model.dart          # 채팅 모델 (ChatMessage, ChatRoom)
+│   ├── house_model.dart         # 집 모델
+│   └── notification_model.dart  # 알림 모델
 ├── providers/
 │   ├── auth_provider.dart       # 인증 상태 관리
 │   └── locale_provider.dart     # 언어 설정 관리
@@ -117,13 +119,17 @@ lib/
 │   ├── settings_screen.dart     # 설정 화면
 │   ├── chat_screen.dart         # 채팅 화면 (목록 + 채팅방)
 │   ├── membership_management_screen.dart  # 주민 신청/초대 관리 (이장용)
-│   └── invitations_screen.dart  # 받은 초대 관리 화면
+│   ├── invitations_screen.dart  # 받은 초대 관리 화면
+│   ├── notifications_screen.dart # 알림 화면
+│   ├── member_house_location_screen.dart  # 이장 집 위치 선택
+│   └── member_house_design_screen.dart    # 주민 집 그리기
 ├── services/
 │   ├── auth_service.dart        # 인증 서비스
-│   ├── village_service.dart     # 마을 CRUD + 주민 신청/초대 서비스
+│   ├── village_service.dart     # 마을 CRUD + 주민 신청/초대/집 서비스
 │   ├── player_service.dart      # 멀티플레이어 상태 관리
 │   ├── chat_service.dart        # 채팅 서비스 (1:1, 그룹)
-│   └── search_service.dart      # 통합 검색 서비스
+│   ├── search_service.dart      # 통합 검색 서비스
+│   └── notification_service.dart # 알림 서비스
 └── widgets/
     ├── globe_widget.dart        # 지구본 위젯
     └── membership_button.dart   # 주민 관리 버튼 위젯
@@ -151,6 +157,9 @@ lib/
 - **VillageLand**: 마을 내부 탐험 화면 (캐릭터 이동 가능)
 - **MembershipManagementScreen**: 주민 신청/초대 관리 (이장 전용)
 - **InvitationsScreen**: 받은 초대 목록 및 수락/거절
+- **NotificationsScreen**: 알림 목록 (주민 승인/거절 등)
+- **MemberHouseLocationScreen**: 이장이 주민 집 위치 선택
+- **MemberHouseDesignScreen**: 주민이 집 그리기
 
 ## Technical Notes
 
@@ -162,13 +171,13 @@ lib/
 
 ## Current Implementation Status
 
-**현재 버전: 1.0.7**
+**현재 버전: 1.0.8**
 
 ### Completed
 - [x] Firebase 프로젝트 설정 (neontown)
 - [x] Google 로그인 (Android, iOS, Web)
 - [x] Cloud Firestore 설정 (asia-northeast3)
-- [x] 보안 규칙 (firestore.rules) - players, membershipRequests, membershipInvitations 포함
+- [x] 보안 규칙 (firestore.rules) - players, membershipRequests, membershipInvitations, notifications, houses 포함
 - [x] Firestore 인덱스 설정 (firestore.indexes.json)
 - [x] 메인 네비게이션 (4탭: 피드, 검색, 마을, 설정)
 - [x] 다국어 지원 (ko, en, ja)
@@ -192,6 +201,9 @@ lib/
 - [x] 초대 관리 화면 (InvitationsScreen)
 - [x] 캐릭터 터치 시 수정 버튼 표시 (GestureDetector 순서 수정)
 - [x] 달리기 모드 개선 (터치 방향으로 계속 달리기, 화면 좌표 기반)
+- [x] 알림 시스템 (NotificationService, NotificationModel)
+- [x] 주민 집 짓기 시스템 (이장 위치 지정 → 주민 집 그리기, 7일 기한)
+- [x] 알림 화면 및 읽지 않은 알림 배지
 
 ### In Progress
 - [ ] Apple 로그인 설정 (Apple Developer 설정 필요)
